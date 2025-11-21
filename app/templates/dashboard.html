@@ -8,7 +8,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600">Total Clients</p>
-                <p class="text-3xl font-semibold text-gray-900 mt-2">0</p>
+                <p class="text-3xl font-semibold text-gray-900 mt-2">{{ metrics.total_clients }}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,7 +22,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600">Active Projects</p>
-                <p class="text-3xl font-semibold text-gray-900 mt-2">0</p>
+                <p class="text-3xl font-semibold text-gray-900 mt-2">{{ metrics.active_projects }}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,7 +36,10 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm font-medium text-gray-600">Pending Invoices</p>
-                <p class="text-3xl font-semibold text-gray-900 mt-2">0</p>
+                <p class="text-3xl font-semibold text-gray-900 mt-2">{{ metrics.unpaid_invoices_count }}</p>
+                {% if metrics.total_pending_amount > 0 %}
+                <p class="text-xs text-gray-500 mt-1">${{ "%.2f"|format(metrics.total_pending_amount) }} pending</p>
+                {% endif %}
             </div>
             <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,14 +52,24 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm font-medium text-gray-600">Hours Tracked</p>
-                <p class="text-3xl font-semibold text-gray-900 mt-2">0</p>
+                <p class="text-sm font-medium text-gray-600">Hours This Month</p>
+                <p class="text-3xl font-semibold text-gray-900 mt-2">{{ metrics.total_hours_this_month }}</p>
             </div>
             <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Overview</h3>
+    <div class="h-64 flex items-end gap-2">
+        <div class="flex-1 flex flex-col items-center">
+            <div class="w-full bg-gray-200 rounded-t" style="height: 60%;" title="Hours tracked"></div>
+            <p class="text-xs text-gray-500 mt-2">This Month</p>
         </div>
     </div>
 </div>
