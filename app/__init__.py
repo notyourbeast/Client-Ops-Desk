@@ -4,6 +4,7 @@ from .config import Config
 from .routes.auth_routes import auth_bp
 from .routes.client_routes import clients_bp
 from .routes.project_routes import projects_bp
+from .routes.invoice_routes import invoices_bp
 from .utils.auth_decorators import login_required
 
 
@@ -14,6 +15,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(clients_bp)
     app.register_blueprint(projects_bp)
+    app.register_blueprint(invoices_bp)
 
     @app.route('/')
     def index():
