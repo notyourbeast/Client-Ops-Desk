@@ -2,6 +2,7 @@ from flask import Flask, render_template
 
 from .config import Config
 from .routes.auth_routes import auth_bp
+from .utils.auth_decorators import login_required
 
 
 def create_app():
@@ -15,6 +16,7 @@ def create_app():
         return 'Freelance ClientHub API'
 
     @app.route('/dashboard')
+    @login_required
     def dashboard():
         return render_template('dashboard.html')
 
