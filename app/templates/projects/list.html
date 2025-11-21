@@ -91,6 +91,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timer</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hourly Rate</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deadline</th>
             </tr>
@@ -130,6 +131,21 @@
                             </button>
                         </div>
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center gap-2" data-project-id="{{ project._id }}">
+                            <button onclick="handleTimer('{{ project._id }}', 'start')" 
+                                    id="start-btn-{{ project._id }}"
+                                    class="px-3 py-1 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors">
+                                Start
+                            </button>
+                            <button onclick="handleTimer('{{ project._id }}', 'stop')" 
+                                    id="stop-btn-{{ project._id }}"
+                                    class="px-3 py-1 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors hidden">
+                                Stop
+                            </button>
+                            <span id="timer-{{ project._id }}" class="text-sm font-mono text-gray-700"></span>
+                        </div>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {% if project.hourly_rate %}${{ "%.2f"|format(project.hourly_rate) }}{% else %}-{% endif %}
                     </td>
@@ -140,7 +156,7 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
+                    <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">
                         No projects yet. Click "Add Project" to get started.
                     </td>
                 </tr>
@@ -150,6 +166,81 @@
 </div>
 
 <script>
+const activeTimers = {};
+
+{% for project in projects %}
+{% if project.active_timer %}
+activeTimers['{{ project._id }}'] = new Date('{{ project.active_timer.start_time }}');
+document.getElementById('start-btn-{{ project._id }}').classList.add('hidden');
+document.getElementById('stop-btn-{{ project._id }}').classList.remove('hidden');
+{% endif %}
+{% endfor %}
+
+function formatTime(seconds) {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay(projectId) {
+    const timerElement = document.getElementById(`timer-${projectId}`);
+    if (!timerElement) return;
+
+    if (activeTimers[projectId]) {
+        const elapsed = Math.floor((new Date() - activeTimers[projectId]) / 1000);
+        timerElement.textContent = formatTime(elapsed);
+    } else {
+        timerElement.textContent = '';
+    }
+}
+
+setInterval(() => {
+    Object.keys(activeTimers).forEach(projectId => {
+        updateTimerDisplay(projectId);
+    });
+}, 1000);
+
+Object.keys(activeTimers).forEach(projectId => {
+    updateTimerDisplay(projectId);
+});
+
+function handleTimer(projectId, action) {
+    const endpoint = action === 'start' ? `/projects/${projectId}/start-timer` : `/projects/${projectId}/stop-timer`;
+    const startBtn = document.getElementById(`start-btn-${projectId}`);
+    const stopBtn = document.getElementById(`stop-btn-${projectId}`);
+    const timerElement = document.getElementById(`timer-${projectId}`);
+
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (action === 'start') {
+                activeTimers[projectId] = new Date(data.start_time);
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                updateTimerDisplay(projectId);
+            } else {
+                delete activeTimers[projectId];
+                startBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+                timerElement.textContent = '';
+            }
+        } else {
+            alert('Failed to ' + action + ' timer: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to ' + action + ' timer');
+    });
+}
+
 function updateStatus(projectId, status) {
     const row = document.querySelector(`[data-project-id="${projectId}"]`).closest('tr');
     const pills = row.querySelectorAll('.status-pill');
