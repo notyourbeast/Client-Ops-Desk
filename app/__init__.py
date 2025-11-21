@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 
 from .config import Config
 
@@ -10,5 +10,9 @@ def create_app():
     @app.route('/')
     def index():
         return 'Freelance ClientHub API'
+
+    @app.route('/dashboard')
+    def dashboard():
+        return render_template('dashboard.html')
 
     return app
