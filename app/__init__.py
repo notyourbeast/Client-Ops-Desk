@@ -2,6 +2,7 @@ from flask import Flask, render_template
 
 from .config import Config
 from .routes.auth_routes import auth_bp
+from .routes.client_routes import clients_bp
 from .utils.auth_decorators import login_required
 
 
@@ -10,6 +11,7 @@ def create_app():
     app.config.from_object(Config)
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(clients_bp)
 
     @app.route('/')
     def index():
