@@ -4,7 +4,8 @@ from app.repositories.project_repository import (
     get_project_by_id,
     update_project,
     update_project_status,
-    delete_project
+    delete_project,
+    get_projects_for_client
 )
 
 
@@ -42,4 +43,8 @@ def remove_user_project(user_id, project_id):
     if not deleted:
         return False, 'Project not found'
     return True, None
+
+
+def get_client_projects(user_id, client_id):
+    return get_projects_for_client(user_id, client_id)
 

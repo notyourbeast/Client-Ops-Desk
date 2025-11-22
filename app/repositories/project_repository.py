@@ -103,3 +103,13 @@ def delete_project(user_id, project_id):
 
     return result.deleted_count > 0
 
+
+def get_projects_for_client(user_id, client_id):
+    db = get_db()
+    projects = db.projects
+
+    return list(projects.find({
+        'user_id': ObjectId(user_id),
+        'client_id': ObjectId(client_id)
+    }))
+

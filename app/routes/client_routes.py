@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 
 from app.services.client_service import create_client_for_user, get_user_clients, get_user_client, update_user_client, remove_user_client
+from app.services.project_service import get_client_projects
 from app.utils.auth_decorators import login_required
 
 clients_bp = Blueprint('clients', __name__, url_prefix='/clients')
@@ -71,6 +72,21 @@ def update_client(client_id):
 
     flash('Client updated successfully', 'success')
     return redirect(url_for('clients.list_clients'))
+
+
+@clients_bp.route('/<client_id>', methods=['GET'])
+@login_required
+def view_client(client_id):
+    user_id = str(g.current_user['_id'])
+    client, error = get_user_client(user_id, client_id)
+    
+    if error:
+        flash(error, 'error')
+        return redirect(url_for('clients.list_clients'))
+    
+    projects = get_client_projects(user_id, client_id)
+    
+    return render_template('clients/detail.html', client=client, projects=projects)
 
 
 @clients_bp.route('/<client_id>', methods=['DELETE'])
