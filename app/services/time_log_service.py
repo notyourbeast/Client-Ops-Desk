@@ -2,7 +2,8 @@ from app.repositories.time_log_repository import (
     start_timer,
     stop_timer,
     get_time_logs_for_project,
-    get_active_timer
+    get_active_timer,
+    get_all_time_logs_for_user
 )
 
 
@@ -26,4 +27,8 @@ def get_project_time_logs(user_id, project_id):
 
 def get_user_active_timer(user_id, project_id):
     return get_active_timer(user_id, project_id)
+
+
+def get_all_user_time_logs(user_id):
+    return get_all_time_logs_for_user(user_id)
 
