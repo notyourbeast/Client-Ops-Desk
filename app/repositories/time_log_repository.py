@@ -82,3 +82,12 @@ def get_active_timer(user_id, project_id):
         'end_time': None
     })
 
+
+def get_all_time_logs_for_user(user_id):
+    db = get_db()
+    time_logs = db.time_logs
+
+    return list(time_logs.find({
+        'user_id': ObjectId(user_id)
+    }).sort('start_time', -1))
+
