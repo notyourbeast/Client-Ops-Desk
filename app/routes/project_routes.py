@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 from bson import ObjectId
 
-from app.services.project_service import create_project_for_user, get_user_projects, change_project_status
+from app.services.project_service import create_project_for_user, get_user_projects, change_project_status, get_user_project
 from app.services.client_service import get_user_clients
 from app.services.time_log_service import start_timer_for_user, stop_timer_for_user, get_user_active_timer
 from app.utils.auth_decorators import login_required
@@ -92,4 +92,18 @@ def stop_timer(project_id):
         return jsonify({'error': error}), 400
 
     return jsonify({'success': True, 'duration_minutes': timer['duration_minutes']})
+
+
+@projects_bp.route('/<project_id>/edit', methods=['GET'])
+@login_required
+def edit_project(project_id):
+    user_id = str(g.current_user['_id'])
+    project, error = get_user_project(user_id, project_id)
+    
+    if error:
+        flash(error, 'error')
+        return redirect(url_for('projects.list_projects'))
+    
+    clients = get_user_clients(user_id)
+    return render_template('projects/edit.html', project=project, clients=clients)
 
