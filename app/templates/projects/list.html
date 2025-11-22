@@ -3,6 +3,22 @@
 {% block page_title %}Projects{% endblock %}
 
 {% block content %}
+<div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete Project</h3>
+            <p class="text-sm text-gray-600 mb-6">Are you sure you want to delete "<span id="delete-project-title"></span>"? This action cannot be undone.</p>
+            <div class="flex gap-3 justify-end">
+                <button id="delete-cancel-btn" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors">
+                    Cancel
+                </button>
+                <button id="delete-confirm-btn" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 transition-colors">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="mb-6 flex items-center justify-between">
     <h3 class="text-lg font-semibold text-gray-900">All Projects</h3>
     <button onclick="document.getElementById('new-project-form').classList.toggle('hidden')"
