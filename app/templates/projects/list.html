@@ -125,31 +125,27 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ project.client_name or '-' }}</td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center gap-1" data-project-id="{{ project._id }}" data-current-status="{{ project.status }}">
-                            <button onclick="updateStatus('{{ project._id }}', 'idea')" data-status="idea"
-                                    class="status-pill px-2 py-1 text-xs font-medium rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 {% if project.status == 'idea' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
-                                Idea
-                            </button>
-                            <button onclick="updateStatus('{{ project._id }}', 'talks')" data-status="talks"
-                                    class="status-pill px-2 py-1 text-xs font-medium rounded-full transition-colors {% if project.status == 'talks' %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
-                                Talks
-                            </button>
-                            <button onclick="updateStatus('{{ project._id }}', 'in-progress')" data-status="in-progress"
-                                    class="status-pill px-2 py-1 text-xs font-medium rounded-full transition-colors {% if project.status == 'in-progress' %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
-                                In Progress
-                            </button>
-                            <button onclick="updateStatus('{{ project._id }}', 'review')" data-status="review"
-                                    class="status-pill px-2 py-1 text-xs font-medium rounded-full transition-colors {% if project.status == 'review' %}bg-purple-100 text-purple-700{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
-                                Review
-                            </button>
-                            <button onclick="updateStatus('{{ project._id }}', 'completed')" data-status="completed"
-                                    class="status-pill px-2 py-1 text-xs font-medium rounded-full transition-colors {% if project.status == 'completed' %}bg-gray-200 text-gray-800{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}">
-                                Completed
-                            </button>
-                        </div>
+                        <select onchange="updateStatus('{{ project._id }}', this.value)" 
+                                id="status-select-{{ project._id }}"
+                                class="status-select text-xs font-medium rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors
+                                {% if project.status == 'idea' %}bg-blue-50 text-blue-700 border-blue-200
+                                {% elif project.status == 'talks' %}bg-yellow-50 text-yellow-700 border-yellow-200
+                                {% elif project.status == 'in-progress' %}bg-green-50 text-green-700 border-green-200
+                                {% elif project.status == 'review' %}bg-purple-50 text-purple-700 border-purple-200
+                                {% elif project.status == 'completed' %}bg-gray-100 text-gray-800 border-gray-300
+                                {% endif %}">
+                            <option value="idea" {% if project.status == 'idea' %}selected{% endif %}>Idea</option>
+                            <option value="talks" {% if project.status == 'talks' %}selected{% endif %}>Talks</option>
+                            <option value="in-progress" {% if project.status == 'in-progress' %}selected{% endif %}>In Progress</option>
+                            <option value="review" {% if project.status == 'review' %}selected{% endif %}>Review</option>
+                            <option value="completed" {% if project.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
                     </td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-2" data-project-id="{{ project._id }}">
+                            {% if project.status == 'completed' %}
+                            <span class="px-3 py-1.5 text-xs font-medium text-gray-500">Timer disabled</span>
+                            {% else %}
                             <button onclick="handleTimer('{{ project._id }}', 'start')" 
                                     id="start-btn-{{ project._id }}"
                                     class="px-3 py-1.5 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition-colors">
@@ -160,6 +156,7 @@
                                     class="px-3 py-1.5 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1 transition-colors hidden">
                                 Stop
                             </button>
+                            {% endif %}
                             <span id="timer-{{ project._id }}" class="text-sm font-mono text-gray-700"></span>
                         </div>
                     </td>
@@ -202,10 +199,14 @@
 const activeTimers = {};
 
 {% for project in projects %}
+{% if project.status != 'completed' %}
 {% if project.active_timer %}
 activeTimers['{{ project._id }}'] = new Date('{{ project.active_timer.start_time }}');
-document.getElementById('start-btn-{{ project._id }}').classList.add('hidden');
-document.getElementById('stop-btn-{{ project._id }}').classList.remove('hidden');
+const startBtn{{ project._id }} = document.getElementById('start-btn-{{ project._id }}');
+const stopBtn{{ project._id }} = document.getElementById('stop-btn-{{ project._id }}');
+if (startBtn{{ project._id }}) startBtn{{ project._id }}.classList.add('hidden');
+if (stopBtn{{ project._id }}) stopBtn{{ project._id }}.classList.remove('hidden');
+{% endif %}
 {% endif %}
 {% endfor %}
 
@@ -250,19 +251,26 @@ function handleTimer(projectId, action) {
             'Content-Type': 'application/json',
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Request failed');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             if (action === 'start') {
                 activeTimers[projectId] = new Date(data.start_time);
-                startBtn.classList.add('hidden');
-                stopBtn.classList.remove('hidden');
+                if (startBtn) startBtn.classList.add('hidden');
+                if (stopBtn) stopBtn.classList.remove('hidden');
                 updateTimerDisplay(projectId);
             } else {
                 delete activeTimers[projectId];
-                startBtn.classList.remove('hidden');
-                stopBtn.classList.add('hidden');
-                timerElement.textContent = '';
+                if (startBtn) startBtn.classList.remove('hidden');
+                if (stopBtn) stopBtn.classList.add('hidden');
+                if (timerElement) timerElement.textContent = '';
             }
         } else {
             alert('Failed to ' + action + ' timer: ' + (data.error || 'Unknown error'));
@@ -270,13 +278,20 @@ function handleTimer(projectId, action) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Failed to ' + action + ' timer');
+        alert('Failed to ' + action + ' timer: ' + error.message);
     });
 }
 
 function updateStatus(projectId, status) {
-    const row = document.querySelector(`[data-project-id="${projectId}"]`).closest('tr');
-    const pills = row.querySelectorAll('.status-pill');
+    const statusSelect = document.getElementById(`status-select-${projectId}`);
+    const row = statusSelect.closest('tr');
+    const timerContainer = row.querySelector(`[data-project-id="${projectId}"]`);
+    const startBtn = document.getElementById(`start-btn-${projectId}`);
+    const stopBtn = document.getElementById(`stop-btn-${projectId}`);
+    const timerElement = document.getElementById(`timer-${projectId}`);
+    
+    const originalValue = statusSelect.value;
+    statusSelect.disabled = true;
     
     fetch(`/projects/${projectId}/status`, {
         method: 'POST',
@@ -288,29 +303,68 @@ function updateStatus(projectId, status) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const statusColors = {
-                'idea': 'bg-blue-100 text-blue-700',
-                'talks': 'bg-yellow-100 text-yellow-700',
-                'in-progress': 'bg-green-100 text-green-700',
-                'review': 'bg-purple-100 text-purple-700',
-                'completed': 'bg-gray-200 text-gray-800'
+            const statusClasses = {
+                'idea': 'bg-blue-50 text-blue-700 border-blue-200',
+                'talks': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                'in-progress': 'bg-green-50 text-green-700 border-green-200',
+                'review': 'bg-purple-50 text-purple-700 border-purple-200',
+                'completed': 'bg-gray-100 text-gray-800 border-gray-300'
             };
             
-            pills.forEach(pill => {
-                const pillStatus = pill.getAttribute('data-status');
-                if (pillStatus === status) {
-                    pill.className = `status-pill px-2 py-1 text-xs font-medium rounded-full transition-colors ${statusColors[status]}`;
-                } else {
-                    pill.className = 'status-pill px-2 py-1 text-xs font-medium rounded-full transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200';
+            statusSelect.className = `status-select text-xs font-medium rounded-md border px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${statusClasses[status]}`;
+            statusSelect.value = status;
+            
+            if (status === 'completed') {
+                if (activeTimers[projectId]) {
+                    delete activeTimers[projectId];
+                    if (timerElement) timerElement.textContent = '';
                 }
-            });
+                if (startBtn) startBtn.remove();
+                if (stopBtn) stopBtn.remove();
+                if (timerContainer) {
+                    const existingDisabled = timerContainer.querySelector('span.text-gray-500');
+                    if (!existingDisabled) {
+                        const disabledText = document.createElement('span');
+                        disabledText.className = 'px-3 py-1.5 text-xs font-medium text-gray-500';
+                        disabledText.textContent = 'Timer disabled';
+                        timerContainer.appendChild(disabledText);
+                    }
+                }
+            } else {
+                if (timerContainer) {
+                    const existingDisabled = timerContainer.querySelector('span.text-gray-500');
+                    if (existingDisabled) {
+                        existingDisabled.remove();
+                        if (!startBtn) {
+                            const newStartBtn = document.createElement('button');
+                            newStartBtn.id = `start-btn-${projectId}`;
+                            newStartBtn.onclick = () => handleTimer(projectId, 'start');
+                            newStartBtn.className = 'px-3 py-1.5 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition-colors';
+                            newStartBtn.textContent = 'Start';
+                            timerContainer.appendChild(newStartBtn);
+                            
+                            const newStopBtn = document.createElement('button');
+                            newStopBtn.id = `stop-btn-${projectId}`;
+                            newStopBtn.onclick = () => handleTimer(projectId, 'stop');
+                            newStopBtn.className = 'px-3 py-1.5 text-xs font-medium rounded-md bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1 transition-colors hidden';
+                            newStopBtn.textContent = 'Stop';
+                            timerContainer.appendChild(newStopBtn);
+                        }
+                    }
+                }
+            }
         } else {
+            statusSelect.value = originalValue;
             alert('Failed to update status: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
+        statusSelect.value = originalValue;
         alert('Failed to update status');
+    })
+    .finally(() => {
+        statusSelect.disabled = false;
     });
 }
 

@@ -17,6 +17,10 @@ class MockCollection:
                     if str(doc_value) != str(value):
                         match = False
                         break
+                elif value is None:
+                    if doc_value is not None:
+                        match = False
+                        break
                 elif doc_value != value:
                     match = False
                     break
@@ -48,6 +52,10 @@ class MockCollection:
                                 match = False
                     elif isinstance(value, ObjectId) or isinstance(doc_value, ObjectId):
                         if str(doc_value) != str(value):
+                            match = False
+                            break
+                    elif value is None:
+                        if doc_value is not None:
                             match = False
                             break
                     elif doc_value != value:

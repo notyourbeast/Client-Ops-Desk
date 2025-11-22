@@ -76,6 +76,13 @@ def update_status(project_id):
 @login_required
 def start_timer(project_id):
     user_id = str(g.current_user['_id'])
+    project, error = get_user_project(user_id, project_id)
+    if error:
+        return jsonify({'error': 'Project not found'}), 404
+    
+    if project.get('status') == 'completed':
+        return jsonify({'error': 'Cannot start timer for completed projects'}), 400
+    
     timer, error = start_timer_for_user(user_id, project_id)
     if error:
         return jsonify({'error': error}), 400
