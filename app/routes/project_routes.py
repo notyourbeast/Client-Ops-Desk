@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 from bson import ObjectId
 
-from app.services.project_service import create_project_for_user, get_user_projects, change_project_status, get_user_project
+from app.services.project_service import create_project_for_user, get_user_projects, change_project_status, get_user_project, update_user_project
 from app.services.client_service import get_user_clients
 from app.services.time_log_service import start_timer_for_user, stop_timer_for_user, get_user_active_timer
 from app.utils.auth_decorators import login_required
@@ -106,4 +106,30 @@ def edit_project(project_id):
     
     clients = get_user_clients(user_id)
     return render_template('projects/edit.html', project=project, clients=clients)
+
+
+@projects_bp.route('/<project_id>', methods=['POST'])
+@login_required
+def update_project(project_id):
+    user_id = str(g.current_user['_id'])
+    data = {
+        'title': request.form.get('title', '').strip(),
+        'description': request.form.get('description', '').strip(),
+        'status': request.form.get('status', 'idea'),
+        'client_id': request.form.get('client_id', '').strip() or None,
+        'hourly_rate': request.form.get('hourly_rate', '').strip() or None,
+        'deadline': request.form.get('deadline', '').strip() or None
+    }
+
+    if not data['title']:
+        flash('Title is required', 'error')
+        return redirect(url_for('projects.edit_project', project_id=project_id))
+
+    project, error = update_user_project(user_id, project_id, data)
+    if error:
+        flash(error, 'error')
+        return redirect(url_for('projects.edit_project', project_id=project_id))
+
+    flash('Project updated successfully', 'success')
+    return redirect(url_for('projects.list_projects'))
 
