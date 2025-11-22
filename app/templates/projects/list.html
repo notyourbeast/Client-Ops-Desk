@@ -167,19 +167,34 @@
                         {% if project.deadline %}{{ project.deadline.strftime('%Y-%m-%d') }}{% else %}-{% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <div class="flex items-center gap-3">
-                            <a href="{{ url_for('projects.view_project', project_id=project._id) }}"
-                               class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
-                                View
-                            </a>
-                            <a href="{{ url_for('projects.edit_project', project_id=project._id) }}"
-                               class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
-                                Edit
-                            </a>
-                            <button onclick="deleteProject('{{ project._id }}', '{{ project.title }}')"
-                                    class="text-red-600 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1 transition-colors">
-                                Delete
+                        <div class="relative" style="z-index: 1;">
+                            <button onclick="toggleActionsMenu('{{ project._id }}', event)"
+                                    class="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors"
+                                    aria-label="Actions"
+                                    type="button">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+                                </svg>
                             </button>
+                            <div id="actions-menu-{{ project._id }}"
+                                 class="hidden fixed bg-white rounded-md shadow-lg border border-gray-200 py-1"
+                                 style="z-index: 9999; min-width: 128px;">
+                                <a href="{{ url_for('projects.view_project', project_id=project._id) }}"
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                   onclick="closeActionsMenu('{{ project._id }}')">
+                                    View
+                                </a>
+                                <a href="{{ url_for('projects.edit_project', project_id=project._id) }}"
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                   onclick="closeActionsMenu('{{ project._id }}')">
+                                    Edit
+                                </a>
+                                <button onclick="handleDeleteClick('{{ project._id }}', '{{ project.title|replace("'", "\\'") }}')"
+                                        class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                        type="button">
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -369,6 +384,69 @@ function updateStatus(projectId, status) {
 }
 
 let pendingDeleteId = null;
+let openActionsMenu = null;
+let currentMenuClickHandler = null;
+
+function toggleActionsMenu(projectId, event) {
+    event.stopPropagation();
+    const menuId = `actions-menu-${projectId}`;
+    const menu = document.getElementById(menuId);
+    const button = event.target.closest('button');
+    
+    if (openActionsMenu && openActionsMenu !== menu) {
+        openActionsMenu.classList.add('hidden');
+        if (currentMenuClickHandler) {
+            document.removeEventListener('click', currentMenuClickHandler);
+            currentMenuClickHandler = null;
+        }
+    }
+    
+    if (menu.classList.contains('hidden')) {
+        const buttonRect = button.getBoundingClientRect();
+        menu.style.top = (buttonRect.bottom + 4) + 'px';
+        menu.style.left = (buttonRect.right - menu.offsetWidth) + 'px';
+        
+        menu.classList.remove('hidden');
+        openActionsMenu = menu;
+        
+        currentMenuClickHandler = function(event) {
+            if (!menu.contains(event.target) && !button.contains(event.target)) {
+                menu.classList.add('hidden');
+                openActionsMenu = null;
+                document.removeEventListener('click', currentMenuClickHandler);
+                currentMenuClickHandler = null;
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', currentMenuClickHandler);
+        }, 0);
+    } else {
+        menu.classList.add('hidden');
+        openActionsMenu = null;
+        if (currentMenuClickHandler) {
+            document.removeEventListener('click', currentMenuClickHandler);
+            currentMenuClickHandler = null;
+        }
+    }
+}
+
+function closeActionsMenu(projectId) {
+    const menu = document.getElementById(`actions-menu-${projectId}`);
+    if (menu) {
+        menu.classList.add('hidden');
+        openActionsMenu = null;
+        if (currentMenuClickHandler) {
+            document.removeEventListener('click', currentMenuClickHandler);
+            currentMenuClickHandler = null;
+        }
+    }
+}
+
+function handleDeleteClick(projectId, projectTitle) {
+    closeActionsMenu(projectId);
+    deleteProject(projectId, projectTitle);
+}
 
 function deleteProject(projectId, projectTitle) {
     const modal = document.getElementById('delete-modal');
