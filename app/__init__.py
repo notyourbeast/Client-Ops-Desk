@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Flask, render_template, g
+from flask import Flask, render_template, g, redirect, url_for
 
 from .config import Config
 from .routes.auth_routes import auth_bp
@@ -25,7 +25,7 @@ def create_app():
 
     @app.route('/')
     def index():
-        return 'Freelance ClientHub API'
+        return redirect(url_for('auth.login_form'))
 
     @app.route('/dashboard')
     @login_required
