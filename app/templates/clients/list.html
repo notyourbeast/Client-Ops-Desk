@@ -3,6 +3,22 @@
 {% block page_title %}Clients{% endblock %}
 
 {% block content %}
+<div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete Client</h3>
+            <p class="text-sm text-gray-600 mb-6">Are you sure you want to delete "<span id="delete-client-name"></span>"? This action cannot be undone.</p>
+            <div class="flex gap-3 justify-end">
+                <button id="delete-cancel-btn" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors">
+                    Cancel
+                </button>
+                <button id="delete-confirm-btn" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 transition-colors">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="mb-6 flex items-center justify-between">
     <h3 class="text-lg font-semibold text-gray-900">All Clients</h3>
     <button onclick="document.getElementById('new-client-form').classList.toggle('hidden')"
@@ -81,16 +97,22 @@
         <tbody class="bg-white divide-y divide-gray-200">
             {% if clients %}
                 {% for client in clients %}
-                <tr class="hover:bg-gray-50 transition-colors">
+                <tr class="hover:bg-gray-50 transition-colors" data-client-id="{{ client._id }}">
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ client.name or '-' }}</td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ client.company or '-' }}</td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ client.email or '-' }}</td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ client.phone or '-' }}</td>
                     <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm">
-                        <a href="{{ url_for('clients.edit_client', client_id=client._id) }}"
-                           class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
-                            Edit
-                        </a>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ url_for('clients.edit_client', client_id=client._id) }}"
+                               class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
+                                Edit
+                            </a>
+                            <button onclick="deleteClient('{{ client._id }}', '{{ client.name }}')"
+                                    class="text-red-600 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1 transition-colors">
+                                Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -104,5 +126,63 @@
         </tbody>
     </table>
 </div>
+
+<script>
+let pendingDeleteId = null;
+
+function deleteClient(clientId, clientName) {
+    const modal = document.getElementById('delete-modal');
+    const nameSpan = document.getElementById('delete-client-name');
+    
+    nameSpan.textContent = clientName;
+    pendingDeleteId = clientId;
+    modal.classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    modal.classList.add('hidden');
+    pendingDeleteId = null;
+}
+
+function confirmDelete() {
+    if (!pendingDeleteId) return;
+
+    const clientId = pendingDeleteId;
+    const modal = document.getElementById('delete-modal');
+    
+    fetch(`/clients/${clientId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const row = document.querySelector(`tr[data-client-id="${clientId}"]`);
+            if (row) {
+                row.remove();
+            }
+            closeDeleteModal();
+        } else {
+            alert('Failed to delete client: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete client');
+    });
+}
+
+document.getElementById('delete-cancel-btn').addEventListener('click', closeDeleteModal);
+document.getElementById('delete-confirm-btn').addEventListener('click', confirmDelete);
+
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
 {% endblock %}
 

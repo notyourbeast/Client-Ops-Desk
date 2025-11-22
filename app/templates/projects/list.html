@@ -310,11 +310,29 @@ function updateStatus(projectId, status) {
     });
 }
 
-function deleteProject(projectId, projectTitle) {
-    if (!confirm(`Are you sure you want to delete "${projectTitle}"? This action cannot be undone.`)) {
-        return;
-    }
+let pendingDeleteId = null;
 
+function deleteProject(projectId, projectTitle) {
+    const modal = document.getElementById('delete-modal');
+    const titleSpan = document.getElementById('delete-project-title');
+    
+    titleSpan.textContent = projectTitle;
+    pendingDeleteId = projectId;
+    modal.classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    modal.classList.add('hidden');
+    pendingDeleteId = null;
+}
+
+function confirmDelete() {
+    if (!pendingDeleteId) return;
+
+    const projectId = pendingDeleteId;
+    const modal = document.getElementById('delete-modal');
+    
     fetch(`/projects/${projectId}`, {
         method: 'DELETE',
         headers: {
@@ -325,7 +343,10 @@ function deleteProject(projectId, projectTitle) {
     .then(data => {
         if (data.success) {
             const row = document.querySelector(`[data-project-id="${projectId}"]`).closest('tr');
-            row.remove();
+            if (row) {
+                row.remove();
+            }
+            closeDeleteModal();
         } else {
             alert('Failed to delete project: ' + (data.error || 'Unknown error'));
         }
@@ -335,6 +356,15 @@ function deleteProject(projectId, projectTitle) {
         alert('Failed to delete project');
     });
 }
+
+document.getElementById('delete-cancel-btn').addEventListener('click', closeDeleteModal);
+document.getElementById('delete-confirm-btn').addEventListener('click', confirmDelete);
+
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
 </script>
 {% endblock %}
 
