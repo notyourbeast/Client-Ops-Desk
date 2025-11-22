@@ -154,10 +154,16 @@
                         {% if project.deadline %}{{ project.deadline.strftime('%Y-%m-%d') }}{% else %}-{% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <a href="{{ url_for('projects.edit_project', project_id=project._id) }}"
-                           class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
-                            Edit
-                        </a>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ url_for('projects.edit_project', project_id=project._id) }}"
+                               class="text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
+                                Edit
+                            </a>
+                            <button onclick="deleteProject('{{ project._id }}', '{{ project.title }}')"
+                                    class="text-red-600 hover:text-red-900 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-1 transition-colors">
+                                Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -285,6 +291,32 @@ function updateStatus(projectId, status) {
     .catch(error => {
         console.error('Error:', error);
         alert('Failed to update status');
+    });
+}
+
+function deleteProject(projectId, projectTitle) {
+    if (!confirm(`Are you sure you want to delete "${projectTitle}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    fetch(`/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const row = document.querySelector(`[data-project-id="${projectId}"]`).closest('tr');
+            row.remove();
+        } else {
+            alert('Failed to delete project: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to delete project');
     });
 }
 </script>

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 from bson import ObjectId
 
-from app.services.project_service import create_project_for_user, get_user_projects, change_project_status, get_user_project, update_user_project
+from app.services.project_service import create_project_for_user, get_user_projects, change_project_status, get_user_project, update_user_project, remove_user_project
 from app.services.client_service import get_user_clients
 from app.services.time_log_service import start_timer_for_user, stop_timer_for_user, get_user_active_timer
 from app.utils.auth_decorators import login_required
@@ -104,6 +104,11 @@ def edit_project(project_id):
         flash(error, 'error')
         return redirect(url_for('projects.list_projects'))
     
+    if project.get('client_id'):
+        project['client_id_str'] = str(project['client_id'])
+    else:
+        project['client_id_str'] = None
+    
     clients = get_user_clients(user_id)
     return render_template('projects/edit.html', project=project, clients=clients)
 
@@ -132,4 +137,16 @@ def update_project(project_id):
 
     flash('Project updated successfully', 'success')
     return redirect(url_for('projects.list_projects'))
+
+
+@projects_bp.route('/<project_id>', methods=['DELETE'])
+@login_required
+def delete_project_route(project_id):
+    user_id = str(g.current_user['_id'])
+    deleted, error = remove_user_project(user_id, project_id)
+    
+    if error:
+        return jsonify({'error': error}), 404
+    
+    return jsonify({'success': True})
 
