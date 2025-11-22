@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 
-from app.services.invoice_service import create_invoice_for_project, get_user_invoices, mark_user_invoice_paid
+from app.services.invoice_service import create_invoice_for_project, get_user_invoices, mark_user_invoice_paid, get_user_invoice
 from app.services.project_service import get_user_projects
 from app.utils.auth_decorators import login_required
 
@@ -61,4 +61,22 @@ def mark_paid(invoice_id):
         return jsonify({'error': error}), 404
 
     return jsonify({'success': True, 'status': invoice['status']})
+
+
+@invoices_bp.route('/<invoice_id>', methods=['GET'])
+@login_required
+def view_invoice(invoice_id):
+    user_id = str(g.current_user['_id'])
+    invoice, error = get_user_invoice(user_id, invoice_id)
+    
+    if error:
+        flash(error, 'error')
+        return redirect(url_for('invoices.list_invoices'))
+    
+    projects = get_user_projects(user_id)
+    project = None
+    if invoice.get('project_id'):
+        project = next((p for p in projects if str(p['_id']) == str(invoice['project_id'])), None)
+    
+    return render_template('invoices/detail.html', invoice=invoice, project=project)
 
