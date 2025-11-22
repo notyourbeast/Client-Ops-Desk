@@ -27,7 +27,7 @@ def create_app():
 
     @app.route('/')
     def index():
-        return redirect(url_for('auth.login_form'))
+        return render_template('intro.html')
 
     @app.route('/dashboard')
     @login_required
