@@ -20,16 +20,17 @@
                 <h1 class="text-xl font-semibold text-gray-900">ClientHub</h1>
             </div>
             <nav class="p-4 space-y-1">
-                <a href="/dashboard" class="block px-3 py-2.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
+                {% set current_path = request.path %}
+                <a href="/dashboard" class="block px-3 py-2.5 rounded-md text-sm font-medium {% if current_path == '/dashboard' %}bg-gray-100 text-gray-900{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %} focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
                     Dashboard
                 </a>
-                <a href="/clients" class="block px-3 py-2.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
+                <a href="/clients" class="block px-3 py-2.5 rounded-md text-sm font-medium {% if current_path.startswith('/clients') %}bg-gray-100 text-gray-900{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %} focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
                     Clients
                 </a>
-                <a href="/projects" class="block px-3 py-2.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
+                <a href="/projects" class="block px-3 py-2.5 rounded-md text-sm font-medium {% if current_path.startswith('/projects') %}bg-gray-100 text-gray-900{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %} focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
                     Projects
                 </a>
-                <a href="/invoices" class="block px-3 py-2.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
+                <a href="/invoices" class="block px-3 py-2.5 rounded-md text-sm font-medium {% if current_path.startswith('/invoices') %}bg-gray-100 text-gray-900{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %} focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
                     Invoices
                 </a>
             </nav>
