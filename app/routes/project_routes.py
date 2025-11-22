@@ -139,6 +139,39 @@ def update_project(project_id):
     return redirect(url_for('projects.list_projects'))
 
 
+@projects_bp.route('/<project_id>', methods=['GET'])
+@login_required
+def view_project(project_id):
+    user_id = str(g.current_user['_id'])
+    project, error = get_user_project(user_id, project_id)
+    
+    if error:
+        flash(error, 'error')
+        return redirect(url_for('projects.list_projects'))
+    
+    clients = get_user_clients(user_id)
+    client_map = {str(client['_id']): client for client in clients}
+    
+    if project.get('client_id'):
+        project['client_name'] = client_map.get(str(project['client_id']), {}).get('name', 'Unknown')
+    else:
+        project['client_name'] = None
+    
+    from app.services.time_log_service import get_project_time_logs
+    time_logs = get_project_time_logs(user_id, project_id)
+    
+    total_hours = sum(log.get('duration_minutes', 0) for log in time_logs) / 60.0
+    
+    active_timer = get_user_active_timer(user_id, project_id)
+    if active_timer:
+        project['active_timer'] = {
+            'start_time': active_timer['start_time'].isoformat(),
+            '_id': str(active_timer['_id'])
+        }
+    
+    return render_template('projects/detail.html', project=project, time_logs=time_logs, total_hours=total_hours)
+
+
 @projects_bp.route('/<project_id>', methods=['DELETE'])
 @login_required
 def delete_project_route(project_id):
