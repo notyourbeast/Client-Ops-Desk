@@ -88,12 +88,12 @@
             <h4 class="text-sm font-semibold text-gray-900 mb-4">Actions</h4>
             <div class="space-y-3">
                 {% if invoice.status == 'unpaid' %}
-                <form method="POST" action="{{ url_for('invoices.mark_paid', invoice_id=invoice._id) }}" class="inline">
-                    <button type="submit"
-                            class="w-full px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 transition-colors">
-                        Mark as Paid
-                    </button>
-                </form>
+                <button type="button"
+                        onclick="return markInvoicePaid('{{ invoice._id }}', event);"
+                        id="mark-paid-btn-detail"
+                        class="w-full px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 transition-colors">
+                    Mark as Paid
+                </button>
                 {% endif %}
                 <a href="{{ url_for('invoices.list_invoices') }}"
                    class="block w-full px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors text-center">
@@ -103,5 +103,86 @@
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    'use strict';
+    
+    function handleMarkPaidDetail(invoiceId, buttonElement) {
+        if (!invoiceId) {
+            alert('Invoice ID not found');
+            return;
+        }
+        
+        const button = buttonElement || document.getElementById('mark-paid-btn-detail');
+        if (!button) {
+            alert('Button not found');
+            return;
+        }
+        
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Updating...';
+        
+        fetch(`/invoices/${invoiceId}/mark-paid`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Request failed');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const statusContainer = document.querySelector('div.grid.grid-cols-2.gap-4 > div:first-child > div.mt-1');
+                if (statusContainer) {
+                    statusContainer.innerHTML = '<span class="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Paid</span>';
+                }
+                
+                button.remove();
+            } else {
+                alert('Failed to mark invoice as paid: ' + (data.error || 'Unknown error'));
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to mark invoice as paid: ' + error.message);
+            button.disabled = false;
+            button.textContent = originalText;
+        });
+    }
+    
+    window.markInvoicePaidDetail = function(invoiceId, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+        }
+        handleMarkPaidDetail(invoiceId, event ? event.target : null);
+        return false;
+    };
+    
+    if (typeof window.markInvoicePaid === 'undefined') {
+        window.markInvoicePaid = function(invoiceId, event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+            }
+            handleMarkPaidDetail(invoiceId, event ? event.target : null);
+            return false;
+        };
+    }
+})();
+</script>
 {% endblock %}
 

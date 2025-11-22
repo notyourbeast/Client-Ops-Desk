@@ -105,8 +105,10 @@
                                 View
                             </a>
                             {% if invoice.status == 'unpaid' %}
-                            <button onclick="markPaid('{{ invoice._id }}')"
-                                    class="px-3 py-1.5 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition-colors">
+                            <button data-invoice-id="{{ invoice._id }}"
+                                    type="button"
+                                    onclick="return markInvoicePaid('{{ invoice._id }}', event);"
+                                    class="mark-paid-btn px-3 py-1.5 text-xs font-medium rounded-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-1 transition-colors">
                                 Mark Paid
                             </button>
                             {% endif %}
@@ -126,32 +128,88 @@
 </div>
 
 <script>
-function markPaid(invoiceId) {
-    const row = document.querySelector(`[data-invoice-id="${invoiceId}"]`);
+(function() {
+    'use strict';
     
-    fetch(`/invoices/${invoiceId}/mark-paid`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
+    function handleMarkPaid(invoiceId, buttonElement) {
+        if (!invoiceId) {
+            alert('Invoice ID not found');
+            return;
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            const statusCell = row.querySelector('td:nth-child(4)');
-            const actionsCell = row.querySelector('td:nth-child(6)');
-            
-            statusCell.innerHTML = '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Paid</span>';
-            actionsCell.innerHTML = '<span class="text-xs text-gray-400">-</span>';
-        } else {
-            alert('Failed to mark invoice as paid: ' + (data.error || 'Unknown error'));
+        
+        const row = document.querySelector(`tr[data-invoice-id="${invoiceId}"]`);
+        if (!row) {
+            alert('Invoice row not found');
+            return;
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to mark invoice as paid');
-    });
-}
+        
+        const button = buttonElement || document.querySelector(`button[data-invoice-id="${invoiceId}"]`);
+        if (!button) {
+            alert('Button not found');
+            return;
+        }
+        
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Updating...';
+        
+        fetch(`/invoices/${invoiceId}/mark-paid`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Request failed');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const statusCell = row.querySelector('td:nth-child(4)');
+                const actionsCell = row.querySelector('td:nth-child(6)');
+                
+                if (statusCell) {
+                    statusCell.innerHTML = '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Paid</span>';
+                }
+                if (actionsCell) {
+                    const viewLink = actionsCell.querySelector('a');
+                    if (viewLink) {
+                        actionsCell.innerHTML = viewLink.outerHTML;
+                    } else {
+                        actionsCell.innerHTML = '<span class="text-xs text-gray-400">-</span>';
+                    }
+                }
+                
+                button.remove();
+            } else {
+                alert('Failed to mark invoice as paid: ' + (data.error || 'Unknown error'));
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to mark invoice as paid: ' + error.message);
+            button.disabled = false;
+            button.textContent = originalText;
+        });
+    }
+    
+    window.markInvoicePaid = function(invoiceId, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+        }
+        handleMarkPaid(invoiceId, event ? event.target : null);
+        return false;
+    };
+})();
 </script>
 {% endblock %}
 
