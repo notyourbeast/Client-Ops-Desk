@@ -27,6 +27,60 @@
     </button>
 </div>
 
+<div class="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+    <form method="GET" action="{{ url_for('projects.list_projects') }}" class="flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+            <div class="relative">
+                <input type="text" 
+                       name="search" 
+                       id="project-search-input"
+                       value="{{ search_query }}"
+                       placeholder="Search by title or description..." 
+                       class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors bg-white text-gray-900 placeholder-gray-400">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="sm:w-48">
+            <select name="client" 
+                    id="client-filter"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors bg-white text-gray-900">
+                <option value="">All Clients</option>
+                {% for client in clients %}
+                <option value="{{ client._id }}" {% if client_filter == client._id|string %}selected{% endif %}>{{ client.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="sm:w-40">
+            <select name="status" 
+                    id="status-filter"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors bg-white text-gray-900">
+                <option value="">All Statuses</option>
+                <option value="idea" {% if status_filter == 'idea' %}selected{% endif %}>Idea</option>
+                <option value="talks" {% if status_filter == 'talks' %}selected{% endif %}>Talks</option>
+                <option value="in-progress" {% if status_filter == 'in-progress' %}selected{% endif %}>In Progress</option>
+                <option value="review" {% if status_filter == 'review' %}selected{% endif %}>Review</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" 
+                    class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors">
+                Filter
+            </button>
+            {% if search_query or client_filter or status_filter %}
+            <a href="{{ url_for('projects.list_projects') }}" 
+               class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors">
+                Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
 {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
@@ -199,6 +253,12 @@
                     </td>
                 </tr>
                 {% endfor %}
+            {% elif search_query or client_filter or status_filter %}
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
+                        No projects found matching your filters. <a href="{{ url_for('projects.list_projects') }}" class="text-gray-900 font-medium hover:underline">Clear filters</a> to see all projects.
+                    </td>
+                </tr>
             {% else %}
                 <tr>
                     <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">

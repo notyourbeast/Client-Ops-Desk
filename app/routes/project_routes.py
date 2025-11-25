@@ -16,6 +16,22 @@ def list_projects():
     projects = get_user_projects(user_id)
     clients = get_user_clients(user_id)
 
+    search_query = request.args.get('search', '').strip()
+    client_filter = request.args.get('client', '').strip()
+    status_filter = request.args.get('status', '').strip()
+
+    if search_query:
+        query_lower = search_query.lower()
+        projects = [p for p in projects if 
+                   query_lower in (p.get('title') or '').lower() or
+                   query_lower in (p.get('description') or '').lower()]
+
+    if client_filter:
+        projects = [p for p in projects if str(p.get('client_id')) == client_filter]
+
+    if status_filter:
+        projects = [p for p in projects if p.get('status') == status_filter]
+
     client_map = {str(client['_id']): client for client in clients}
 
     for project in projects:
@@ -31,7 +47,12 @@ def list_projects():
                 '_id': str(active_timer['_id'])
             }
 
-    return render_template('projects/list.html', projects=projects, clients=clients)
+    return render_template('projects/list.html', 
+                         projects=projects, 
+                         clients=clients,
+                         search_query=search_query,
+                         client_filter=client_filter,
+                         status_filter=status_filter)
 
 
 @projects_bp.route('', methods=['POST'])
