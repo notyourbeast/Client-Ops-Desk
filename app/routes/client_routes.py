@@ -12,7 +12,28 @@ clients_bp = Blueprint('clients', __name__, url_prefix='/clients')
 def list_clients():
     user_id = str(g.current_user['_id'])
     clients = get_user_clients(user_id)
-    return render_template('clients/list.html', clients=clients)
+    
+    search_query = request.args.get('search', '').strip()
+    company_filter = request.args.get('company', '').strip()
+    
+    if search_query:
+        query_lower = search_query.lower()
+        clients = [c for c in clients if 
+                   query_lower in (c.get('name') or '').lower() or
+                   query_lower in (c.get('company') or '').lower() or
+                   query_lower in (c.get('email') or '').lower() or
+                   query_lower in (c.get('phone') or '').lower()]
+    
+    if company_filter:
+        clients = [c for c in clients if c.get('company') == company_filter]
+    
+    companies = sorted(set(c.get('company') for c in get_user_clients(user_id) if c.get('company')))
+    
+    return render_template('clients/list.html', 
+                         clients=clients, 
+                         search_query=search_query,
+                         company_filter=company_filter,
+                         companies=companies)
 
 
 @clients_bp.route('', methods=['POST'])
