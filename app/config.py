@@ -10,20 +10,12 @@ class Config:
     SECRET_KEY = os.environ.get('FCH_SECRET_KEY', 'dev-secret')
     MONGO_URI = os.environ.get('FCH_MONGO_URI', '')
     JWT_SECRET_KEY = os.environ.get('FCH_JWT_SECRET_KEY', 'dev-jwt-secret')
-
-
-
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-
-uri = "mongodb+srv://notyourbeast10:<db_password>@cluster0.52ms49f.mongodb.net/?appName=Cluster0"
-
-# Create a new client and connect to the server
-client = MongoClient(uri, server_api=ServerApi('1'))
-
-# Send a ping to confirm a successful connection
-try:
-    client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print(e)
+    
+    # Google OAuth Configuration
+    GOOGLE_CLIENT_ID = os.environ.get('FCH_GOOGLE_CLIENT_ID', '')
+    GOOGLE_CLIENT_SECRET = os.environ.get('FCH_GOOGLE_CLIENT_SECRET', '')
+    GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
+    
+    # Flask URL configuration for OAuth redirects
+    SERVER_NAME = os.environ.get('FCH_SERVER_NAME', None)  # e.g., 'localhost:5000'
+    PREFERRED_URL_SCHEME = os.environ.get('FCH_URL_SCHEME', 'http')

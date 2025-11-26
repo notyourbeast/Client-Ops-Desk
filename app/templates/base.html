@@ -67,7 +67,11 @@
                         </div>
                         <div class="relative">
                             <button id="user-menu-button" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors">
+                                {% if session.get('user') and session['user'].get('picture') %}
+                                <img src="{{ session['user']['picture'] }}" alt="{{ session['user'].get('name', 'User') }}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                                {% else %}
                                 <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
+                                {% endif %}
                             </button>
                             <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
                                 <form method="POST" action="{{ url_for('auth.logout') }}" class="block">

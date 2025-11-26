@@ -19,6 +19,27 @@ from .utils.auth_decorators import login_required
 def create_app():
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config.from_object(Config)
+    app.secret_key = Config.SECRET_KEY
+
+    # Initialize OAuth
+    from authlib.integrations.flask_client import OAuth
+    oauth = OAuth(app)
+    
+    if Config.GOOGLE_CLIENT_ID and Config.GOOGLE_CLIENT_SECRET:
+        google = oauth.register(
+            name='google',
+            client_id=Config.GOOGLE_CLIENT_ID,
+            client_secret=Config.GOOGLE_CLIENT_SECRET,
+            server_metadata_url=Config.GOOGLE_DISCOVERY_URL,
+            client_kwargs={
+                'scope': 'openid email profile'
+            },
+            # Explicitly set the API base URL to avoid relative URL issues
+            api_base_url='https://www.googleapis.com/'
+        )
+        app.config['GOOGLE_OAUTH'] = google
+    else:
+        app.config['GOOGLE_OAUTH'] = None
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(clients_bp)
