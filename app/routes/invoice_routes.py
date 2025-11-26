@@ -48,7 +48,8 @@ def list_invoices():
         for inv in invoices:
             if inv.get('project_id'):
                 project = project_map.get(str(inv['project_id']), {})
-                if project.get('client_id') and str(project['client_id']) == client_filter:
+                project_client_id = project.get('client_id')
+                if project_client_id and str(project_client_id) == client_filter:
                     filtered_invoices.append(inv)
         invoices = filtered_invoices
 

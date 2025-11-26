@@ -1,29 +1,46 @@
 import os
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure, ConfigurationError
+from pymongo.server_api import ServerApi
 
 from app.config import Config
 
 
 _client = None
-_use_mock = os.environ.get('FCH_USE_MOCK_DB', 'false').lower() == 'true'
+_db_name = os.environ.get('FCH_DB_NAME', 'freelance_clienthub')
 
 
 def get_client():
     global _client
-    if _use_mock:
-        return None
     if _client is None:
+        if not Config.MONGO_URI:
+            raise ConnectionFailure("MONGO_URI not set. Please configure MongoDB connection in .env file.")
         try:
-            _client = MongoClient(Config.MONGO_URI) if Config.MONGO_URI else None
-        except Exception:
-            _client = None
+            # Use ServerApi for MongoDB Atlas connections
+            if Config.MONGO_URI and 'mongodb+srv://' in Config.MONGO_URI:
+                # For Atlas, use ServerApi and handle SSL certificate issues
+                _client = MongoClient(
+                    Config.MONGO_URI, 
+                    server_api=ServerApi('1'),
+                    serverSelectionTimeoutMS=10000,
+                    tlsAllowInvalidCertificates=True
+                )
+            else:
+                _client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
+            _client.admin.command('ping')
+        except (ConnectionFailure, ConfigurationError, Exception) as e:
+            print(f"MongoDB connection error: {e}")
+            raise ConnectionFailure(f"Failed to connect to MongoDB: {e}")
     return _client
 
 
 def get_db():
-    if _use_mock or not Config.MONGO_URI or get_client() is None:
-        from app.repositories.mock_db import get_mock_db
-        return get_mock_db()
+    if not Config.MONGO_URI:
+        raise ConnectionFailure("MONGO_URI not set. Please configure MongoDB connection in .env file.")
+    
     client = get_client()
-    return client["freelance_clienthub"]
+    if client is None:
+        raise ConnectionFailure("MongoDB client is None. Please check your connection settings.")
+    
+    return client[_db_name]
 

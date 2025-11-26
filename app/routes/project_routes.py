@@ -27,7 +27,7 @@ def list_projects():
                    query_lower in (p.get('description') or '').lower()]
 
     if client_filter:
-        projects = [p for p in projects if str(p.get('client_id')) == client_filter]
+        projects = [p for p in projects if p.get('client_id') and str(p.get('client_id')) == client_filter]
 
     if status_filter:
         projects = [p for p in projects if p.get('status') == status_filter]
