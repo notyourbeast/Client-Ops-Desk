@@ -8,6 +8,7 @@ from .routes.project_routes import projects_bp
 from .routes.invoice_routes import invoices_bp
 from .routes.time_routes import time_bp
 from .routes.search_routes import search_bp
+from .routes.settings_routes import settings_bp
 from .services.client_service import get_user_clients
 from .services.project_service import get_user_projects
 from .services.invoice_service import get_user_invoices
@@ -47,6 +48,7 @@ def create_app():
     app.register_blueprint(invoices_bp)
     app.register_blueprint(time_bp)
     app.register_blueprint(search_bp)
+    app.register_blueprint(settings_bp)
 
     @app.route('/')
     def index():
