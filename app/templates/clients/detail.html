@@ -123,7 +123,7 @@
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {% if project.hourly_rate %}${{ "%.2f"|format(project.hourly_rate) }}{% else %}-{% endif %}
+                                {% if project.hourly_rate %}€{{ "%.2f"|format(project.hourly_rate) }}{% else %}-{% endif %}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {% if project.deadline %}{{ project.deadline.strftime('%Y-%m-%d') }}{% else %}-{% endif %}

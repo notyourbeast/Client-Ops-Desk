@@ -38,7 +38,7 @@
                 <p class="text-sm font-medium text-gray-600">Pending Invoices</p>
                 <p class="text-3xl font-semibold text-gray-900 mt-2">{{ metrics.unpaid_invoices_count }}</p>
                 {% if metrics.total_pending_amount > 0 %}
-                <p class="text-xs text-gray-500 mt-1">${{ "%.2f"|format(metrics.total_pending_amount) }} pending</p>
+                <p class="text-xs text-gray-500 mt-1">€{{ "%.2f"|format(metrics.total_pending_amount) }} pending</p>
                 {% endif %}
             </div>
             <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -95,7 +95,7 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">Monthly Revenue</h3>
         <div class="flex items-baseline gap-2 mb-1">
-            <span class="text-4xl font-bold text-gray-900">${{ "%.2f"|format(metrics.monthly_revenue) }}</span>
+            <span class="text-4xl font-bold text-gray-900">€{{ "%.2f"|format(metrics.monthly_revenue) }}</span>
         </div>
         {% if metrics.monthly_revenue == 0 %}
         <p class="text-sm text-gray-400">No paid invoices this month</p>

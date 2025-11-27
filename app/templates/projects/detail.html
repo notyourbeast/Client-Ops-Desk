@@ -65,7 +65,7 @@
                         <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">Hourly Rate</label>
                         <p class="mt-1 text-sm font-medium text-gray-900">
                             {% if project.hourly_rate %}
-                                ${{ "%.2f"|format(project.hourly_rate) }}/hr
+                                €{{ "%.2f"|format(project.hourly_rate) }}/hr
                             {% else %}
                                 <span class="text-gray-400">Not set</span>
                             {% endif %}
