@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, jsonify
 from bson import ObjectId
+from datetime import datetime
 
 from app.services.project_service import create_project_for_user, get_user_projects, change_project_status, get_user_project, update_user_project, remove_user_project
 from app.services.client_service import get_user_clients
@@ -108,7 +109,13 @@ def start_timer(project_id):
     if error:
         return jsonify({'error': error}), 400
 
-    return jsonify({'success': True, 'start_time': timer['start_time'].isoformat()})
+    # Serialize datetime for JSON response
+    start_time_iso = timer['start_time'].isoformat() if isinstance(timer['start_time'], datetime) else str(timer['start_time'])
+    return jsonify({
+        'success': True, 
+        'start_time': start_time_iso,
+        'timer_id': str(timer['_id'])
+    })
 
 
 @projects_bp.route('/<project_id>/stop-timer', methods=['POST'])
@@ -119,7 +126,11 @@ def stop_timer(project_id):
     if error:
         return jsonify({'error': error}), 400
 
-    return jsonify({'success': True, 'duration_minutes': timer['duration_minutes']})
+    return jsonify({
+        'success': True, 
+        'duration_minutes': timer['duration_minutes'],
+        'end_time': timer['end_time'].isoformat() if isinstance(timer['end_time'], datetime) else str(timer['end_time'])
+    })
 
 
 @projects_bp.route('/<project_id>/edit', methods=['GET'])

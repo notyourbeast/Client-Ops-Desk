@@ -3,8 +3,8 @@
 {% block page_title %}Projects{% endblock %}
 
 {% block content %}
-<div id="delete-modal" class="hidden fixed inset-0 flex items-center justify-center pointer-events-none" style="z-index: 51;">
-    <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 pointer-events-auto">
+<div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
         <div class="p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete Project</h3>
             <p class="text-sm text-gray-600 mb-6">Are you sure you want to delete "<span id="delete-project-title"></span>"? This action cannot be undone.</p>
@@ -231,8 +231,8 @@
                                 </svg>
                             </button>
                             <div id="actions-menu-{{ project._id }}"
-                                 class="hidden absolute right-0 mt-2 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-[60]"
-                                 style="min-width: 128px;">
+                                 class="hidden fixed bg-white rounded-md shadow-lg border border-gray-200 py-1"
+                                 style="z-index: 9999; min-width: 128px;">
                                 <a href="{{ url_for('projects.view_project', project_id=project._id) }}"
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                    onclick="closeActionsMenu('{{ project._id }}')">
@@ -449,14 +449,10 @@ let currentMenuClickHandler = null;
 
 function toggleActionsMenu(projectId, event) {
     event.stopPropagation();
-    event.preventDefault();
     const menuId = `actions-menu-${projectId}`;
     const menu = document.getElementById(menuId);
     const button = event.target.closest('button');
     
-    if (!menu || !button) return;
-    
-    // Close any other open menu
     if (openActionsMenu && openActionsMenu !== menu) {
         openActionsMenu.classList.add('hidden');
         if (currentMenuClickHandler) {
@@ -465,14 +461,16 @@ function toggleActionsMenu(projectId, event) {
         }
     }
     
-    // Toggle current menu
     if (menu.classList.contains('hidden')) {
+        const buttonRect = button.getBoundingClientRect();
+        menu.style.top = (buttonRect.bottom + 4) + 'px';
+        menu.style.left = (buttonRect.right - menu.offsetWidth) + 'px';
+        
         menu.classList.remove('hidden');
         openActionsMenu = menu;
         
-        // Close menu when clicking outside
-        currentMenuClickHandler = function(e) {
-            if (!menu.contains(e.target) && !button.contains(e.target)) {
+        currentMenuClickHandler = function(event) {
+            if (!menu.contains(event.target) && !button.contains(event.target)) {
                 menu.classList.add('hidden');
                 openActionsMenu = null;
                 document.removeEventListener('click', currentMenuClickHandler);
@@ -480,7 +478,6 @@ function toggleActionsMenu(projectId, event) {
             }
         };
         
-        // Use setTimeout to avoid immediate trigger
         setTimeout(() => {
             document.addEventListener('click', currentMenuClickHandler);
         }, 0);
@@ -517,25 +514,13 @@ function deleteProject(projectId, projectTitle) {
     
     titleSpan.textContent = projectTitle;
     pendingDeleteId = projectId;
-    
-    // Use centralized modal manager
-    if (window.ModalManager) {
-        window.ModalManager.open(modal);
-    } else {
-        modal.classList.remove('hidden');
-    }
+    modal.classList.remove('hidden');
 }
 
 function closeDeleteModal() {
     const modal = document.getElementById('delete-modal');
+    modal.classList.add('hidden');
     pendingDeleteId = null;
-    
-    // Use centralized modal manager
-    if (window.ModalManager) {
-        window.ModalManager.close();
-    } else {
-        modal.classList.add('hidden');
-    }
 }
 
 function confirmDelete() {
@@ -571,8 +556,8 @@ function confirmDelete() {
 document.getElementById('delete-cancel-btn').addEventListener('click', closeDeleteModal);
 document.getElementById('delete-confirm-btn').addEventListener('click', confirmDelete);
 
-// Modal click handling is now managed by global ModalManager
-// Removed duplicate click handlerif (e.target === this) {
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
         closeDeleteModal();
     }
 });

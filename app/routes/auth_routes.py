@@ -77,14 +77,22 @@ def google_login():
         flash('Google OAuth is not configured. Please contact administrator.', 'error')
         return redirect(url_for('auth.login_form'))
     
-    # Get the redirect URI - use request.host_url to ensure correct host/port
-    base_url = request.host_url.rstrip('/')
-    redirect_uri = f"{base_url}/auth/google/callback"
-    
-    # Log for debugging (remove in production)
-    current_app.logger.info(f'OAuth redirect URI: {redirect_uri}')
-    
-    return google.authorize_redirect(redirect_uri)
+    try:
+        # Generate redirect URI using url_for to ensure it matches Flask's routing
+        # This ensures consistency with the callback route
+        redirect_uri = url_for('auth.google_callback', _external=True)
+        
+        # Log for debugging
+        current_app.logger.info(f'OAuth redirect URI: {redirect_uri}')
+        current_app.logger.info(f'Request host: {request.host}')
+        current_app.logger.info(f'Request scheme: {request.scheme}')
+        
+        # Use authorize_redirect with explicit redirect_uri
+        return google.authorize_redirect(redirect_uri)
+    except Exception as e:
+        current_app.logger.error(f'Error initiating Google OAuth: {str(e)}')
+        flash('Failed to initiate Google login. Please try again.', 'error')
+        return redirect(url_for('auth.login_form'))
 
 
 @auth_bp.route('/google/callback', methods=['GET'])
@@ -103,11 +111,17 @@ def google_callback():
             flash(f'Google authentication error: {error_description}', 'error')
             return redirect(url_for('auth.login_form'))
         
-        # Authorize and get token - Authlib handles redirect_uri automatically
+        # Authorize and get token
+        # Authlib automatically extracts redirect_uri from the request, so don't pass it explicitly
         try:
+            # Generate the redirect URI that should match what was sent
+            expected_redirect_uri = url_for('auth.google_callback', _external=True)
+            current_app.logger.info(f'Expected redirect URI: {expected_redirect_uri}')
+            
             token = google.authorize_access_token()
         except Exception as token_error:
             current_app.logger.error(f'Token authorization error: {str(token_error)}')
+            current_app.logger.error(f'Request args: {dict(request.args)}')
             flash(f'Failed to authorize with Google: {str(token_error)}', 'error')
             return redirect(url_for('auth.login_form'))
         

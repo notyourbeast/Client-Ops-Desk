@@ -73,10 +73,7 @@
                                 <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
                                 {% endif %}
                             </button>
-                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-[60]">
-                                <a href="{{ url_for('settings.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors">
-                                    Profile & Settings
-                                </a>
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
                                 <form method="POST" action="{{ url_for('auth.logout') }}" class="block">
                                     <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors">
                                         Sign out
@@ -93,10 +90,7 @@
             </main>
         </div>
 
-        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[40] lg:hidden hidden"></div>
-        
-        <!-- Global Modal Overlay (for centralized modal management) -->
-        <div id="global-modal-overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[50] flex items-center justify-center"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
     </div>
 
     <script>
@@ -143,56 +137,6 @@
                 }
             });
         }
-
-        // Global Modal Management System
-        // Prevents modal conflicts by managing z-index and overlay
-        window.ModalManager = {
-            activeModal: null,
-            overlay: document.getElementById('global-modal-overlay'),
-            
-            open: function(modalElement) {
-                // Close any existing modal
-                if (this.activeModal) {
-                    this.close();
-                }
-                
-                this.activeModal = modalElement;
-                if (modalElement) {
-                    modalElement.classList.remove('hidden');
-                    modalElement.style.zIndex = '51'; // Above overlay (50)
-                    if (this.overlay) {
-                        this.overlay.classList.remove('hidden');
-                    }
-                }
-            },
-            
-            close: function() {
-                if (this.activeModal) {
-                    this.activeModal.classList.add('hidden');
-                    this.activeModal = null;
-                }
-                if (this.overlay) {
-                    this.overlay.classList.add('hidden');
-                }
-            }
-        };
-
-        // Close modal on overlay click
-        const globalModalOverlay = document.getElementById('global-modal-overlay');
-        if (globalModalOverlay) {
-            globalModalOverlay.addEventListener('click', function(e) {
-                if (e.target === globalModalOverlay) {
-                    window.ModalManager.close();
-                }
-            });
-        }
-
-        // Close modal on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && window.ModalManager.activeModal) {
-                window.ModalManager.close();
-            }
-        });
     </script>
 </body>
 </html>

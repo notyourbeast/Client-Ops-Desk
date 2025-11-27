@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import Flask, render_template, g, redirect, url_for
+from bson import ObjectId
 
 from .config import Config
 from .routes.auth_routes import auth_bp
@@ -8,7 +9,6 @@ from .routes.project_routes import projects_bp
 from .routes.invoice_routes import invoices_bp
 from .routes.time_routes import time_bp
 from .routes.search_routes import search_bp
-from .routes.settings_routes import settings_bp
 from .services.client_service import get_user_clients
 from .services.project_service import get_user_projects
 from .services.invoice_service import get_user_invoices
@@ -27,6 +27,12 @@ def create_app():
     oauth = OAuth(app)
     
     if Config.GOOGLE_CLIENT_ID and Config.GOOGLE_CLIENT_SECRET:
+        # Configure Flask URL generation for OAuth redirects
+        if Config.SERVER_NAME:
+            app.config['SERVER_NAME'] = Config.SERVER_NAME
+        if Config.PREFERRED_URL_SCHEME:
+            app.config['PREFERRED_URL_SCHEME'] = Config.PREFERRED_URL_SCHEME
+        
         google = oauth.register(
             name='google',
             client_id=Config.GOOGLE_CLIENT_ID,
@@ -48,7 +54,6 @@ def create_app():
     app.register_blueprint(invoices_bp)
     app.register_blueprint(time_bp)
     app.register_blueprint(search_bp)
-    app.register_blueprint(settings_bp)
 
     @app.route('/')
     def index():
@@ -70,8 +75,11 @@ def create_app():
         db = get_db()
         time_logs = db.time_logs
 
+        # Use ObjectId for user_id to ensure proper query
+        user_obj_id = g.current_user['_id'] if isinstance(g.current_user['_id'], ObjectId) else ObjectId(g.current_user['_id'])
+
         monthly_logs = list(time_logs.find({
-            'user_id': g.current_user['_id'],
+            'user_id': user_obj_id,
             'end_time': {'$gte': first_day_of_month, '$lte': now},
             'duration_minutes': {'$ne': None}
         }))

@@ -102,6 +102,23 @@
                     <h4 class="text-lg font-semibold text-gray-900">Time Logs</h4>
                     <p class="text-sm text-gray-500 mt-1">Total: {{ "%.2f"|format(total_hours) }} hours</p>
                 </div>
+                <div class="flex items-center gap-3">
+                    {% if project.status == 'completed' %}
+                    <span class="px-3 py-1.5 text-xs font-medium text-gray-500">Timer disabled</span>
+                    {% else %}
+                    <button onclick="handleTimer('{{ project._id }}', 'start')" 
+                            id="start-btn-{{ project._id }}"
+                            class="px-4 py-2 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 transition-colors">
+                        Start Timer
+                    </button>
+                    <button onclick="handleTimer('{{ project._id }}', 'stop')" 
+                            id="stop-btn-{{ project._id }}"
+                            class="px-4 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 transition-colors hidden">
+                        Stop Timer
+                    </button>
+                    <span id="timer-{{ project._id }}" class="text-sm font-mono text-gray-700 font-medium"></span>
+                    {% endif %}
+                </div>
             </div>
 
             {% if time_logs %}
@@ -169,5 +186,89 @@
         </div>
     </div>
 </div>
+
+<script>
+const activeTimers = {};
+
+{% if project.status != 'completed' %}
+{% if project.active_timer %}
+activeTimers['{{ project._id }}'] = new Date('{{ project.active_timer.start_time }}');
+const startBtn = document.getElementById('start-btn-{{ project._id }}');
+const stopBtn = document.getElementById('stop-btn-{{ project._id }}');
+if (startBtn) startBtn.classList.add('hidden');
+if (stopBtn) stopBtn.classList.remove('hidden');
+{% endif %}
+{% endif %}
+
+function formatTime(seconds) {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay(projectId) {
+    const timerElement = document.getElementById(`timer-${projectId}`);
+    if (!timerElement) return;
+
+    if (activeTimers[projectId]) {
+        const now = new Date();
+        const elapsed = Math.floor((now - activeTimers[projectId]) / 1000);
+        timerElement.textContent = formatTime(elapsed);
+    } else {
+        timerElement.textContent = '';
+    }
+}
+
+{% if project.status != 'completed' %}
+setInterval(() => updateTimerDisplay('{{ project._id }}'), 1000);
+updateTimerDisplay('{{ project._id }}');
+{% endif %}
+
+function handleTimer(projectId, action) {
+    const endpoint = action === 'start' ? `/projects/${projectId}/start-timer` : `/projects/${projectId}/stop-timer`;
+    const startBtn = document.getElementById(`start-btn-${projectId}`);
+    const stopBtn = document.getElementById(`stop-btn-${projectId}`);
+    const timerElement = document.getElementById(`timer-${projectId}`);
+
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Request failed');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            if (action === 'start') {
+                activeTimers[projectId] = new Date(data.start_time);
+                if (startBtn) startBtn.classList.add('hidden');
+                if (stopBtn) stopBtn.classList.remove('hidden');
+                updateTimerDisplay(projectId);
+            } else {
+                delete activeTimers[projectId];
+                if (startBtn) startBtn.classList.remove('hidden');
+                if (stopBtn) stopBtn.classList.add('hidden');
+                if (timerElement) timerElement.textContent = '';
+                // Reload page to show updated time logs
+                window.location.reload();
+            }
+        } else {
+            alert('Failed to ' + action + ' timer: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to ' + action + ' timer: ' + error.message);
+    });
+}
+</script>
 {% endblock %}
 
