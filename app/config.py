@@ -17,5 +17,5 @@ class Config:
     GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
     
     # Flask URL configuration for OAuth redirects
-    SERVER_NAME = os.environ.get('FCH_SERVER_NAME', None)  # e.g., 'localhost:5000'
-    PREFERRED_URL_SCHEME = os.environ.get('FCH_URL_SCHEME', 'http')
+    SERVER_NAME = os.environ.get('FCH_SERVER_NAME', None)  # e.g., 'localhost:5000' or 'your-app.onrender.com'
+    PREFERRED_URL_SCHEME = os.environ.get('FCH_URL_SCHEME', 'https')  # Use 'https' for production
