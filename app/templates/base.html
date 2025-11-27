@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Freelance ClientHub{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{{ url_for('static', filename='js/modal-manager.js') }}"></script>
     <style>
         @media (max-width: 768px) {
             .sidebar-open {
@@ -15,7 +16,7 @@
 </head>
 <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-6 border-b border-gray-200">
                 <h1 class="text-xl font-semibold text-gray-900">ClientHub</h1>
             </div>
@@ -73,7 +74,7 @@
                                 <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
                                 {% endif %}
                             </button>
-                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-40">
                                 <form method="POST" action="{{ url_for('auth.logout') }}" class="block">
                                     <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors">
                                         Sign out
@@ -90,7 +91,7 @@
             </main>
         </div>
 
-        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden hidden"></div>
     </div>
 
     <script>
