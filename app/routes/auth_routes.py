@@ -93,8 +93,8 @@ def google_login():
         redirect_uri = url_for('auth.google_callback', _external=True)
         
         # Force HTTPS if we detected it should be HTTPS
-        if scheme == 'https' and redirect_uri.startswith('http://'):
-            redirect_uri = redirect_uri.replace('http://', 'https://', 1)
+        if scheme == 'https' and redirect_uri.startswith('https://'):
+            redirect_uri = redirect_uri.replace('https://', 'https://', 1)
         
         # Log for debugging
         current_app.logger.info(f'OAuth redirect URI: {redirect_uri}')
