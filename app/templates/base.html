@@ -135,17 +135,200 @@
             }
         });
 
-        const globalSearchInput = document.getElementById('global-search-input');
-        if (globalSearchInput) {
-            globalSearchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const query = globalSearchInput.value.trim();
-                    if (query) {
-                        window.location.href = `/search?q=${encodeURIComponent(query)}`;
+        // AJAX Search and Filter Handler
+        (function() {
+            'use strict';
+            
+            let isLoading = false;
+            
+            // Helper function to show loading state
+            function showLoading(container) {
+                if (!container) return;
+                const loadingHtml = '<div class="bg-white rounded-lg border border-gray-200 p-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div><p class="mt-4 text-sm text-gray-500">Loading...</p></div>';
+                container.innerHTML = loadingHtml;
+            }
+            
+            // Helper function to handle errors
+            function handleError(container, error) {
+                if (!container) return;
+                const errorHtml = `<div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center"><p class="text-sm text-red-700">Failed to load results. <a href="${window.location.href}" class="underline">Refresh page</a></p></div>`;
+                container.innerHTML = errorHtml;
+                console.error('AJAX Error:', error);
+            }
+            
+            // Generic function to load results via AJAX
+            async function loadResults(url, containerId) {
+                if (isLoading) return;
+                
+                const container = document.getElementById(containerId);
+                if (!container) {
+                    // Fallback to normal navigation if container not found
+                    window.location.href = url;
+                    return;
+                }
+                
+                isLoading = true;
+                showLoading(container);
+                
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html'
+                        },
+                        credentials: 'same-origin'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
+                    
+                    const html = await response.text();
+                    container.innerHTML = html;
+                    
+                    // Update URL without reload
+                    window.history.pushState({}, '', url);
+                    
+                    // Re-initialize any scripts in the loaded content
+                    // This is important for projects page timers
+                    if (window.reinitializePageScripts) {
+                        window.reinitializePageScripts();
+                    }
+                    
+                } catch (error) {
+                    handleError(container, error);
+                    // Fallback: allow normal form submission on error
+                    window.location.href = url;
+                } finally {
+                    isLoading = false;
+                }
+            }
+            
+            // Handle form submissions for filters
+            function enhanceFormWithAjax(form, containerId) {
+                if (!form || !containerId) return;
+                
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(form);
+                    const params = new URLSearchParams(formData);
+                    const url = `${form.action}?${params.toString()}`;
+                    
+                    loadResults(url, containerId);
+                });
+            }
+            
+            // Enhance clients filter form
+            const clientsForm = document.querySelector('form[action*="/clients"]');
+            if (clientsForm && document.getElementById('clients-results-container')) {
+                enhanceFormWithAjax(clientsForm, 'clients-results-container');
+            }
+            
+            // Enhance projects filter form
+            const projectsForm = document.querySelector('form[action*="/projects"]');
+            if (projectsForm && document.getElementById('projects-results-container')) {
+                enhanceFormWithAjax(projectsForm, 'projects-results-container');
+            }
+            
+            // Enhance invoices filter form
+            const invoicesForm = document.querySelector('form[action*="/invoices"]');
+            if (invoicesForm && document.getElementById('invoices-results-container')) {
+                enhanceFormWithAjax(invoicesForm, 'invoices-results-container');
+            }
+            
+            // Handle global search
+            const globalSearchInput = document.getElementById('global-search-input');
+            if (globalSearchInput) {
+                globalSearchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const query = globalSearchInput.value.trim();
+                        if (query) {
+                            const url = `/search?q=${encodeURIComponent(query)}`;
+                            const container = document.getElementById('search-results-container');
+                            const header = document.getElementById('search-header');
+                            
+                            // If we're on the search page, use AJAX
+                            if (container && window.location.pathname === '/search') {
+                                // Load results and update both header and content
+                                if (isLoading) return;
+                                
+                                isLoading = true;
+                                if (container) showLoading(container);
+                                
+                                fetch(url, {
+                                    method: 'GET',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'text/html'
+                                    },
+                                    credentials: 'same-origin'
+                                })
+                                .then(response => {
+                                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                                    return response.text();
+                                })
+                                .then(html => {
+                                    // Parse the response (header + content)
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(html, 'text/html');
+                                    const headerP = doc.querySelector('p');
+                                    
+                                    if (header && headerP) {
+                                        header.innerHTML = headerP.outerHTML;
+                                    }
+                                    if (container) {
+                                        container.innerHTML = doc.body.innerHTML;
+                                    }
+                                    
+                                    window.history.pushState({}, '', url);
+                                })
+                                .catch(error => {
+                                    console.error('Search error:', error);
+                                    window.location.href = url;
+                                })
+                                .finally(() => {
+                                    isLoading = false;
+                                });
+                            } else {
+                                // Otherwise navigate normally
+                                window.location.href = url;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', (e) => {
+                const url = window.location.href;
+                const path = window.location.pathname;
+                
+                // Determine which container to update based on path
+                let containerId = null;
+                if (path.startsWith('/clients')) {
+                    containerId = 'clients-results-container';
+                } else if (path.startsWith('/projects')) {
+                    containerId = 'projects-results-container';
+                } else if (path.startsWith('/invoices')) {
+                    containerId = 'invoices-results-container';
+                } else if (path === '/search') {
+                    containerId = 'search-results-container';
+                }
+                
+                if (containerId && document.getElementById(containerId)) {
+                    loadResults(url, containerId);
+                } else {
+                    // Fallback to full page reload
+                    window.location.reload();
                 }
             });
-        }
+            
+            // Expose loadResults for use in other scripts
+            window.loadResults = loadResults;
+        })();
     </script>
 </body>
 </html>

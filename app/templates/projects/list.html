@@ -145,6 +145,7 @@
     </form>
 </div>
 
+<div id="projects-results-container">
 <div class="bg-white rounded-lg border border-gray-200 overflow-hidden overflow-x-auto">
     <table class="w-full min-w-[800px]">
         <thead class="bg-gray-50 border-b border-gray-200">
@@ -260,9 +261,12 @@
         </tbody>
     </table>
 </div>
+</div>
 
 <script>
-const activeTimers = {};
+// Global timer functions and state
+const activeTimers = window.activeTimers || {};
+window.activeTimers = activeTimers;
 
 {% for project in projects %}
 {% if project.status != 'completed' %}
@@ -552,6 +556,26 @@ document.getElementById('delete-modal').addEventListener('click', function(e) {
         closeDeleteModal();
     }
 });
+
+// Re-initialization function for AJAX updates
+window.reinitializePageScripts = function() {
+    // Re-initialize timers from the updated content
+    const timerElements = document.querySelectorAll('[data-project-id]');
+    timerElements.forEach(container => {
+        const projectId = container.getAttribute('data-project-id');
+        const startBtn = document.getElementById(`start-btn-${projectId}`);
+        const stopBtn = document.getElementById(`stop-btn-${projectId}`);
+        const timerElement = document.getElementById(`timer-${projectId}`);
+        
+        // Check if there's an active timer in the data
+        if (activeTimers[projectId] && timerElement) {
+            updateTimerDisplay(projectId);
+        }
+    });
+    
+    // Re-attach event listeners if needed
+    // (Most are already attached via onclick attributes in HTML)
+};
 </script>
 {% endblock %}
 

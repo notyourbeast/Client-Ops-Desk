@@ -96,11 +96,11 @@ This will install `Authlib` and `requests` needed for OAuth.
 
 ## Features
 
-✅ **Automatic User Creation** - New users are created automatically  
-✅ **Email-based Login** - Existing users with same email can log in  
-✅ **No Password Required** - Google handles authentication  
-✅ **Secure** - Uses OAuth 2.0 standard  
-✅ **Works for Login and Signup** - Same button for both  
+ **Automatic User Creation** - New users are created automatically  
+**Email-based Login** - Existing users with same email can log in  
+ **No Password Required** - Google handles authentication  
+**Secure** - Uses OAuth 2.0 standard  
+**Works for Login and Signup** - Same button for both  
 
 ## Troubleshooting
 

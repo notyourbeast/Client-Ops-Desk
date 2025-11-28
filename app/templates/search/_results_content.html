@@ -1,18 +1,3 @@
-{% extends "base.html" %}
-
-{% block page_title %}Search Results{% endblock %}
-
-{% block content %}
-<div class="mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-2">Search Results</h3>
-    {% if query %}
-    <p class="text-sm text-gray-600">Found <span class="font-semibold">{{ total_results }}</span> result{% if total_results != 1 %}s{% endif %} for "<span class="font-medium">{{ query }}</span>"</p>
-    {% else %}
-    <p class="text-sm text-gray-600">Enter a search query to find clients, projects, and invoices.</p>
-    {% endif %}
-</div>
-
-<div id="search-results-container">
 {% if not query %}
 <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
     <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,6 +129,4 @@
     {% endif %}
 </div>
 {% endif %}
-</div>
-{% endblock %}
 

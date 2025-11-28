@@ -29,6 +29,13 @@ def list_clients():
     
     companies = sorted(set(c.get('company') for c in get_user_clients(user_id) if c.get('company')))
     
+    # Check if this is an AJAX request for partial HTML
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render_template('clients/_results_table.html',
+                             clients=clients,
+                             search_query=search_query,
+                             company_filter=company_filter)
+    
     return render_template('clients/list.html', 
                          clients=clients, 
                          search_query=search_query,

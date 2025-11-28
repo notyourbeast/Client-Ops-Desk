@@ -48,6 +48,14 @@ def list_projects():
                 '_id': str(active_timer['_id'])
             }
 
+    # Check if this is an AJAX request for partial HTML
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render_template('projects/_results_table.html',
+                             projects=projects,
+                             search_query=search_query,
+                             client_filter=client_filter,
+                             status_filter=status_filter)
+
     return render_template('projects/list.html', 
                          projects=projects, 
                          clients=clients,

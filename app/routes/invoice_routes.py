@@ -58,6 +58,14 @@ def list_invoices():
     elif filter_status == 'unpaid':
         invoices = [inv for inv in invoices if inv.get('status') == 'unpaid']
 
+    # Check if this is an AJAX request for partial HTML
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render_template('invoices/_results_table.html',
+                             invoices=invoices,
+                             search_query=search_query,
+                             client_filter=client_filter,
+                             current_filter=filter_status)
+
     return render_template('invoices/list.html', 
                          invoices=invoices, 
                          projects=projects, 
