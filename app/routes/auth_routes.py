@@ -79,13 +79,29 @@ def google_login():
     
     try:
         # Generate redirect URI using url_for to ensure it matches Flask's routing
-        # This ensures consistency with the callback route
+        # Force HTTPS in production (Render uses proxy, so we need to detect it)
+        scheme = 'https'
+        # Check if we're behind a proxy (Render, etc.)
+        if request.headers.get('X-Forwarded-Proto'):
+            scheme = request.headers.get('X-Forwarded-Proto')
+        elif current_app.config.get('PREFERRED_URL_SCHEME'):
+            scheme = current_app.config.get('PREFERRED_URL_SCHEME')
+        elif request.is_secure:
+            scheme = 'https'
+        
+        # Generate redirect URI with forced scheme
         redirect_uri = url_for('auth.google_callback', _external=True)
+        
+        # Force HTTPS if we detected it should be HTTPS
+        if scheme == 'https' and redirect_uri.startswith('http://'):
+            redirect_uri = redirect_uri.replace('http://', 'https://', 1)
         
         # Log for debugging
         current_app.logger.info(f'OAuth redirect URI: {redirect_uri}')
         current_app.logger.info(f'Request host: {request.host}')
         current_app.logger.info(f'Request scheme: {request.scheme}')
+        current_app.logger.info(f'X-Forwarded-Proto: {request.headers.get("X-Forwarded-Proto")}')
+        current_app.logger.info(f'PREFERRED_URL_SCHEME: {current_app.config.get("PREFERRED_URL_SCHEME")}')
         
         # Use authorize_redirect with explicit redirect_uri
         return google.authorize_redirect(redirect_uri)

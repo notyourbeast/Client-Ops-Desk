@@ -22,6 +22,10 @@ def create_app():
     app.config.from_object(Config)
     app.secret_key = Config.SECRET_KEY
 
+    # Handle proxy headers for HTTPS detection (Render, etc.)
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
     # Initialize OAuth
     from authlib.integrations.flask_client import OAuth
     oauth = OAuth(app)
