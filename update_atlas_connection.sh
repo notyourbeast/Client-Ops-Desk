@@ -9,7 +9,7 @@ echo "Please enter your MongoDB Atlas password:"
 read -s ATLAS_PASSWORD
 
 if [ -z "$ATLAS_PASSWORD" ]; then
-    echo "❌ Password cannot be empty!"
+    echo " Password cannot be empty!"
     exit 1
 fi
 
@@ -35,7 +35,7 @@ FCH_DB_NAME=freelance_clienthub
 EOF
 
 echo ""
-echo "✅ .env file updated with Atlas connection string!"
+echo ".env file updated with Atlas connection string!"
 echo ""
 echo "Next steps:"
 echo "1. Make sure your IP is whitelisted in Atlas Network Access"
