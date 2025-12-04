@@ -69,3 +69,61 @@ All list views support AJAX-based filtering and searching. Form submissions are 
 - **python-dotenv 1.0.0**: Environment variable management from .env files 
 - **requests 2.31.0**: HTTP library for external API calls (Google OAuth user info) 
  
+ ### Why These Technologies 
+ Flask was chosen for its simplicity and flexibility, allowing rapid development without the overhead of larger frameworks. MongoDB provides schema flexibility that accommodates evolving data structures without migrations. The vanilla JavaScript approach keeps the frontend lightweight and avoids framework dependencies. Tailwind CSS enables rapid UI development with consistent styling. 
+ 
+
+ ## Folder Structure 
+ 
+``` 
+. 
+├── app/ # Main application package 
+│ ├── __init__.py # Application factory, blueprint registration, dashboard route 
+│ ├── config.py # Configuration class loading environment variables 
+│ ├── models/ # Data models 
+│ │ └── user_model.py # User document structure helpers 
+│ ├── repositories/ # Database access layer 
+│ │ ├── db.py # MongoDB connection management 
+│ │ ├── client_repository.py # Client CRUD operations 
+│ │ ├── project_repository.py # Project CRUD operations 
+│ │ ├── invoice_repository.py # Invoice CRUD operations 
+│ │ └── time_log_repository.py # Time log CRUD operations 
+│ ├── services/ # Business logic layer 
+│ │ ├── auth_service.py # User registration and authentication 
+│ │ ├── oauth_service.py # Google OAuth user creation/lookup 
+│ │ ├── client_service.py # Client business logic 
+│ │ ├── project_service.py # Project business logic 
+│ │ ├── invoice_service.py # Invoice calculation and generation 
+│ │ ├── time_log_service.py # Timer start/stop logic 
+│ │ └── search_service.py # Global search across entities 
+│ ├── routes/ # HTTP request handlers 
+│ │ ├── auth_routes.py # Authentication endpoints 
+│ │ ├── client_routes.py # Client management endpoints 
+│ │ ├── project_routes.py # Project management endpoints 
+│ │ ├── invoice_routes.py # Invoice management endpoints 
+│ │ ├── time_routes.py # Time log viewing endpoints 
+│ │ └── search_routes.py # Global search endpoint 
+│ ├── templates/ # Jinja2 HTML templates 
+│ │ ├── base.html # Base template with navigation and AJAX handlers 
+│ │ ├── base_auth.html # Base template for auth pages 
+│ │ ├── dashboard.html # Dashboard with metrics 
+│ │ ├── intro.html # Landing page 
+│ │ ├── auth/ # Authentication templates 
+│ │ ├── clients/ # Client templates (list, detail, edit, partial) 
+│ │ ├── projects/ # Project templates (list, detail, edit, partial) 
+│ │ ├── invoices/ # Invoice templates (list, detail, partial) 
+│ │ ├── search/ # Search results templates 
+│ │ └── time/ # Time log templates 
+│ ├── utils/ # Utility modules 
+│ │ ├── auth_decorators.py # @login_required decorator 
+│ │ └── jwt_utils.py # JWT token creation and validation 
+│ └── static/ # Static assets 
+│ ├── css/ # Additional stylesheets 
+│ └── js/ # Additional JavaScript files 
+├── run.py # Application entry point 
+├── requirements.txt # Python dependencies 
+├── Procfile # Production server configuration 
+├── setup_mongodb.py # Database setup script 
+├── verify_connection.py # MongoDB connection verification 
+└── .env # Environment variables (not in repo) 
+ 
