@@ -150,6 +150,11 @@
             }
         }
 
+        // Attach click handlers to navigation links
+        const navLinks = document.querySelectorAll('aside nav a[href^="/"]');
+        navLinks.forEach(link => {
+            link.addEventListener('click', handleNavClick);
+        });
         
         // AJAX Search and Filter Handler
         (function() {
