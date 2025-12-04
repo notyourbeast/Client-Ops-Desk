@@ -152,12 +152,9 @@
                 // Show loading state
                 mainContent.innerHTML = '<div class="bg-white rounded-lg border border-gray-200 p-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div><p class="mt-4 text-sm text-gray-500">Loading...</p></div>';
                 
-                // Fetch the page content
-                fetch(href, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
+                // Fetch the page content (full page, not partial)
+                // Don't send X-Requested-With header for navigation to get full page HTML
+                fetch(href)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Failed to load page');
@@ -172,6 +169,12 @@
                     
                     if (newContent) {
                         mainContent.innerHTML = newContent.innerHTML;
+                    }
+                    
+                    // Update page title
+                    const newTitle = doc.querySelector('title');
+                    if (newTitle) {
+                        document.title = newTitle.textContent;
                     }
                     
                     // Update URL without reload
@@ -208,11 +211,8 @@
             const mainContent = document.getElementById('main-content');
             if (!mainContent) return;
             
-            fetch(url, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
+            // Fetch full page for navigation
+            fetch(url)
             .then(response => response.text())
             .then(html => {
                 const parser = new DOMParser();
@@ -221,6 +221,12 @@
                 
                 if (newContent) {
                     mainContent.innerHTML = newContent.innerHTML;
+                }
+                
+                // Update page title
+                const newTitle = doc.querySelector('title');
+                if (newTitle) {
+                    document.title = newTitle.textContent;
                 }
                 
                 updateActiveNavLink(url);
