@@ -50,56 +50,56 @@ def verify_connection():
         else:
             client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
         client.admin.command('ping')
-        print("   ✅ MongoDB connection successful!")
-        print(f"   ✅ Server: {client.address}")
+        print("   MongoDB connection successful!")
+        print(f"  Server: {client.address}")
     except ConnectionFailure as e:
         error_msg = str(e)
-        print(f"   ❌ Connection failed")
+        print(f"   Connection failed")
         if 'authentication failed' in error_msg.lower() or 'bad auth' in error_msg.lower():
-            print("   ⚠️  Authentication error - check:")
+            print("     Authentication error - check:")
             print("      • Password is correct")
             print("      • IP address is whitelisted in Atlas")
         elif 'SSL' in error_msg or 'CERTIFICATE' in error_msg:
-            print("   ⚠️  SSL certificate error - this should be fixed in the code")
+            print("     SSL certificate error - this should be fixed in the code")
         else:
             print(f"   Error details: {error_msg[:200]}")
         return False
     except Exception as e:
         error_msg = str(e)
-        print(f"   ❌ Error: {error_msg[:200]}")
+        print(f"    Error: {error_msg[:200]}")
         if 'authentication' in error_msg.lower() or 'bad auth' in error_msg.lower():
-            print("   ⚠️  Check your password and IP whitelist in Atlas")
+            print("     Check your password and IP whitelist in Atlas")
         return False
     print()
     
     # Step 3: Test database access
-    print("📊 Step 3: Testing Database Access")
+    print(" Step 3: Testing Database Access")
     print("-" * 60)
     try:
         db = client[db_name]
         collections = db.list_collection_names()
-        print(f"   ✅ Database '{db_name}' accessible")
-        print(f"   ✅ Collections found: {len(collections)}")
+        print(f"    Database '{db_name}' accessible")
+        print(f"    Collections found: {len(collections)}")
         if collections:
-            print(f"   ✅ Collection names: {', '.join(collections)}")
+            print(f"    Collection names: {', '.join(collections)}")
         else:
             print("   ℹ️  No collections yet (will be created automatically)")
     except Exception as e:
-        print(f"   ❌ Database access failed: {e}")
+        print(f"    Database access failed: {e}")
         return False
     print()
     
     # Step 4: Test application database connection
-    print("🚀 Step 4: Testing Application Database Connection")
+    print(" Step 4: Testing Application Database Connection")
     print("-" * 60)
     try:
         from app.repositories.db import get_db
         app_db = get_db()
         
         if hasattr(app_db, 'name'):
-            print(f"   ✅ Application connected to MongoDB")
-            print(f"   ✅ Database name: {app_db.name}")
-            print(f"   ✅ Database type: MongoDB Database")
+            print(f"    Application connected to MongoDB")
+            print(f"    Database name: {app_db.name}")
+            print(f"    Database type: MongoDB Database")
         else:
             print("   ❌ Application database connection failed")
             print("   ❌ Check your MongoDB connection settings")
@@ -111,10 +111,10 @@ def verify_connection():
     
     # Final summary
     print("=" * 60)
-    print("✅ ALL TESTS PASSED!")
+    print(" ALL TESTS PASSED!")
     print("=" * 60)
     print()
-    print("🎉 Your MongoDB connection is working correctly!")
+    print(" Your MongoDB connection is working correctly!")
     print()
     print("Next steps:")
     print("   1. Run: python run.py")
@@ -128,6 +128,6 @@ def verify_connection():
 if __name__ == '__main__':
     success = verify_connection()
     if not success:
-        print("❌ Connection verification failed. Please check the errors above.")
+        print(" Connection verification failed. Please check the errors above.")
         exit(1)
 
