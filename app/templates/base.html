@@ -139,12 +139,14 @@
         function handleNavClick(e) {
             const link = e.currentTarget;
             const href = link.getAttribute('href');
+            console.log('Nav click handler called for:', href);
             
             // Only handle internal navigation links
             if (href && (href.startsWith('/dashboard') || href.startsWith('/clients') || 
                          href.startsWith('/projects') || href.startsWith('/invoices') || 
                          href.startsWith('/time'))) {
                 e.preventDefault();
+                console.log('Preventing default navigation');
                 
                 const mainContent = document.getElementById('main-content');
                 if (!mainContent) return;
@@ -237,10 +239,13 @@
             }
         }
 
-        // Attach click handlers to navigation links
-        const navLinks = document.querySelectorAll('aside nav a[href^="/"]');
-        navLinks.forEach(link => {
-            link.addEventListener('click', handleNavClick);
+        // Attach click handlers to navigation links when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('aside nav a[href^="/"]');
+            console.log('Found nav links:', navLinks.length);
+            navLinks.forEach(link => {
+                link.addEventListener('click', handleNavClick);
+            });
         });
         
         // AJAX Search and Filter Handler
