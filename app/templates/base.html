@@ -145,9 +145,49 @@
                          href.startsWith('/projects') || href.startsWith('/invoices') || 
                          href.startsWith('/time'))) {
                 e.preventDefault();
-                console.log('Nav link clicked:', href);
-                // Will add AJAX loading here next
-            }
+                
+                const mainContent = document.getElementById('main-content');
+                if (!mainContent) return;
+                
+                // Show loading state
+                mainContent.innerHTML = '<div class="bg-white rounded-lg border border-gray-200 p-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div><p class="mt-4 text-sm text-gray-500">Loading...</p></div>';
+                
+                // Fetch the page content
+                fetch(href, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load page');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // Parse the HTML and extract just the main content
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.querySelector('#main-content') || doc.querySelector('main') || doc.body;
+                    
+                    if (newContent) {
+                        mainContent.innerHTML = newContent.innerHTML;
+                    }
+                    
+                    // Update URL without reload
+                    window.history.pushState({}, '', href);
+                    
+                    // Update active navigation link
+                    updateActiveNavLink(href);
+                })
+                .catch(error => {
+                    console.error('Error loading page:', error);
+                    // Fallback to normal navigation
+                    window.location.href = href;
+                });
+        }
+        
+        
         }
 
         // Attach click handlers to navigation links
