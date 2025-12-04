@@ -187,7 +187,48 @@
                 });
         }
         
+            // Function to update active navigation link styling
+        function updateActiveNavLink(path) {
+            const navLinks = document.querySelectorAll('aside nav a[href^="/"]');
+            navLinks.forEach(link => {
+                const linkHref = link.getAttribute('href');
+                if (path === linkHref || (linkHref !== '/dashboard' && path.startsWith(linkHref))) {
+                    link.classList.add('bg-gray-100', 'text-gray-900');
+                    link.classList.remove('text-gray-700');
+                } else {
+                    link.classList.remove('bg-gray-100', 'text-gray-900');
+                    link.classList.add('text-gray-700');
+                }
+            });
+        }
         
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', (e) => {
+            const url = window.location.pathname;
+            const mainContent = document.getElementById('main-content');
+            if (!mainContent) return;
+            
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.querySelector('#main-content') || doc.querySelector('main') || doc.body;
+                
+                if (newContent) {
+                    mainContent.innerHTML = newContent.innerHTML;
+                }
+                
+                updateActiveNavLink(url);
+            })
+            .catch(() => {
+                window.location.reload();
+            });
+            }
         }
 
         // Attach click handlers to navigation links
