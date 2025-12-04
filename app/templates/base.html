@@ -135,6 +135,22 @@
             }
         });
 
+        // Navigation link click handler
+        function handleNavClick(e) {
+            const link = e.currentTarget;
+            const href = link.getAttribute('href');
+            
+            // Only handle internal navigation links
+            if (href && (href.startsWith('/dashboard') || href.startsWith('/clients') || 
+                         href.startsWith('/projects') || href.startsWith('/invoices') || 
+                         href.startsWith('/time'))) {
+                e.preventDefault();
+                console.log('Nav link clicked:', href);
+                // Will add AJAX loading here next
+            }
+        }
+
+        
         // AJAX Search and Filter Handler
         (function() {
             'use strict';
