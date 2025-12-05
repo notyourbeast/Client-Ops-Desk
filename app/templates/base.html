@@ -103,24 +103,44 @@
     </div>
 
     <script>
-        const menuToggle = document.getElementById('menu-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebar-overlay');
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
 
-        function toggleSidebar() {
-            if (sidebar) {
-                sidebar.classList.toggle('-translate-x-full');
+            console.log('Menu toggle element:', menuToggle);
+            console.log('Sidebar element:', sidebar);
+            console.log('Overlay element:', overlay);
+
+            function toggleSidebar() {
+                if (sidebar) {
+                    const isHidden = sidebar.classList.contains('-translate-x-full');
+                    if (isHidden) {
+                        sidebar.classList.remove('-translate-x-full');
+                    } else {
+                        sidebar.classList.add('-translate-x-full');
+                    }
+                    console.log('Sidebar is now:', isHidden ? 'visible' : 'hidden');
+                }
+                if (overlay) {
+                    overlay.classList.toggle('hidden');
+                }
             }
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Menu toggle clicked');
+                    toggleSidebar();
+                });
+            } else {
+                console.error('Menu toggle button not found!');
+            }
+
             if (overlay) {
-                overlay.classList.toggle('hidden');
+                overlay.addEventListener('click', toggleSidebar);
             }
-        }
-
-        menuToggle?.addEventListener('click', function(e) {
-            console.log('Menu toggle clicked');
-            toggleSidebar();
         });
-        overlay?.addEventListener('click', toggleSidebar);
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
