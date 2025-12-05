@@ -223,8 +223,8 @@
                                 </svg>
                             </button>
                             <div id="actions-menu-{{ project._id }}"
-                                 class="hidden fixed bg-white rounded-md shadow-lg border border-gray-200 py-1"
-                                 style="z-index: 9999; min-width: 128px;">
+                                 class="hidden fixed bg-white rounded-md shadow-xl border border-gray-200 py-1"
+                                 style="z-index: 9999; min-width: 140px; max-width: 200px;">
                                 <a href="{{ url_for('projects.view_project', project_id=project._id) }}"
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                    onclick="closeActionsMenu('{{ project._id }}')">
@@ -457,11 +457,61 @@ function toggleActionsMenu(projectId, event) {
     }
     
     if (menu.classList.contains('hidden')) {
-        const buttonRect = button.getBoundingClientRect();
-        menu.style.top = (buttonRect.bottom + 4) + 'px';
-        menu.style.left = (buttonRect.right - menu.offsetWidth) + 'px';
-        
+        // First, make menu visible temporarily to measure it
         menu.classList.remove('hidden');
+        menu.style.visibility = 'hidden';
+        menu.style.display = 'block';
+        
+        const buttonRect = button.getBoundingClientRect();
+        const menuRect = menu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const padding = 8; // Padding from viewport edges
+        
+        // Calculate horizontal position
+        let leftPos;
+        const spaceOnRight = viewportWidth - buttonRect.right;
+        const spaceOnLeft = buttonRect.left;
+        
+        // On mobile (viewport < 640px), prefer left alignment
+        if (viewportWidth < 640) {
+            // Position to the left of the button
+            leftPos = buttonRect.left - menuRect.width;
+            // If it would overflow left, align to right edge of viewport
+            if (leftPos < padding) {
+                leftPos = viewportWidth - menuRect.width - padding;
+            }
+        } else {
+            // On desktop, try right alignment first
+            leftPos = buttonRect.right - menuRect.width;
+            // If it would overflow left, align to left of button
+            if (leftPos < padding) {
+                leftPos = buttonRect.left;
+            }
+            // If it would overflow right, align to right edge
+            if (leftPos + menuRect.width > viewportWidth - padding) {
+                leftPos = viewportWidth - menuRect.width - padding;
+            }
+        }
+        
+        // Calculate vertical position
+        let topPos = buttonRect.bottom + 4;
+        // If menu would overflow bottom, position above button
+        if (topPos + menuRect.height > viewportHeight - padding) {
+            topPos = buttonRect.top - menuRect.height - 4;
+            // If it would overflow top too, position at bottom of viewport
+            if (topPos < padding) {
+                topPos = viewportHeight - menuRect.height - padding;
+            }
+        }
+        
+        // Apply positions
+        menu.style.top = topPos + 'px';
+        menu.style.left = leftPos + 'px';
+        menu.style.visibility = 'visible';
+        menu.style.right = 'auto';
+        menu.style.bottom = 'auto';
+        
         openActionsMenu = menu;
         
         currentMenuClickHandler = function(event) {

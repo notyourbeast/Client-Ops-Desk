@@ -75,8 +75,8 @@
                                 </svg>
                             </button>
                             <div id="actions-menu-{{ project._id }}"
-                                 class="hidden fixed bg-white rounded-md shadow-lg border border-gray-200 py-1"
-                                 style="z-index: 9999; min-width: 128px;">
+                                 class="hidden fixed bg-white rounded-md shadow-xl border border-gray-200 py-1"
+                                 style="z-index: 9999; min-width: 140px; max-width: 200px;">
                                 <a href="{{ url_for('projects.view_project', project_id=project._id) }}"
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                    onclick="closeActionsMenu('{{ project._id }}')">

@@ -75,7 +75,6 @@ All list views support AJAX-based filtering and searching. Form submissions are 
 
  ## Folder Structure 
  
-``` 
 . 
 ├── app/ # Main application package 
 │ ├── __init__.py # Application factory, blueprint registration, dashboard route 
