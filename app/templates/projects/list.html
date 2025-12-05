@@ -223,8 +223,8 @@
                                 </svg>
                             </button>
                             <div id="actions-menu-{{ project._id }}"
-                                 class="hidden fixed bg-white rounded-md shadow-xl border border-gray-200 py-1"
-                                 style="z-index: 9999; min-width: 140px; max-width: 200px;">
+                                 class="hidden bg-white rounded-md shadow-xl border border-gray-200 py-1"
+                                 style="min-width: 140px; max-width: 200px;">
                                 <a href="{{ url_for('projects.view_project', project_id=project._id) }}"
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                    onclick="closeActionsMenu('{{ project._id }}')">
@@ -446,131 +446,152 @@ let menuOriginalNextSibling = null;
 
 function toggleActionsMenu(projectId, event) {
     event.stopPropagation();
+    event.preventDefault();
     const menuId = `actions-menu-${projectId}`;
     const menu = document.getElementById(menuId);
     const button = event.target.closest('button');
     
+    if (!menu || !button) return;
+    
+    // Close any other open menu first
     if (openActionsMenu && openActionsMenu !== menu) {
-        // Restore previous menu to its original position
-        if (menuOriginalParent && menuOriginalNextSibling) {
-            if (menuOriginalNextSibling) {
-                menuOriginalParent.insertBefore(openActionsMenu, menuOriginalNextSibling);
-            } else {
-                menuOriginalParent.appendChild(openActionsMenu);
-            }
-        }
-        openActionsMenu.classList.add('hidden');
-        if (currentMenuClickHandler) {
-            document.removeEventListener('click', currentMenuClickHandler);
-            currentMenuClickHandler = null;
-        }
-        menuOriginalParent = null;
-        menuOriginalNextSibling = null;
+        closeActionsMenu(null, true);
     }
     
     if (menu.classList.contains('hidden')) {
-        // Store original position
+        // Store original position before moving
         menuOriginalParent = menu.parentNode;
         menuOriginalNextSibling = menu.nextSibling;
         
-        // Move menu to body to escape overflow constraints
+        // Move menu to body immediately to escape overflow constraints
         document.body.appendChild(menu);
         
-        // First, make menu visible temporarily to measure it
-        menu.classList.remove('hidden');
+        // Set up menu styles for measurement
+        menu.style.position = 'fixed';
         menu.style.visibility = 'hidden';
         menu.style.display = 'block';
+        menu.style.top = '0px';
+        menu.style.left = '0px';
+        menu.classList.remove('hidden');
+        
+        // Force a reflow to ensure menu is measured correctly
+        void menu.offsetWidth;
         
         const buttonRect = button.getBoundingClientRect();
         const menuRect = menu.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        const padding = 8; // Padding from viewport edges
+        const padding = 12; // Padding from viewport edges
         
         // Calculate horizontal position
         let leftPos;
-        const spaceOnRight = viewportWidth - buttonRect.right;
-        const spaceOnLeft = buttonRect.left;
+        const menuWidth = menuRect.width || 140; // Fallback width
+        const menuHeight = menuRect.height || 100; // Fallback height
         
         // On mobile (viewport < 640px), prefer left alignment
         if (viewportWidth < 640) {
-            // Position to the left of the button
-            leftPos = buttonRect.left - menuRect.width;
-            // If it would overflow left, align to right edge of viewport
+            // Try to align to left of button
+            leftPos = buttonRect.left - menuWidth;
+            // If it would overflow left, position to the right of button
             if (leftPos < padding) {
-                leftPos = viewportWidth - menuRect.width - padding;
+                leftPos = buttonRect.right + 4;
+                // If still overflow, align to viewport edge
+                if (leftPos + menuWidth > viewportWidth - padding) {
+                    leftPos = Math.max(padding, viewportWidth - menuWidth - padding);
+                }
             }
         } else {
-            // On desktop, try right alignment first
-            leftPos = buttonRect.right - menuRect.width;
+            // On desktop, try right alignment first (align right edge of menu to right edge of button)
+            leftPos = buttonRect.right - menuWidth;
             // If it would overflow left, align to left of button
             if (leftPos < padding) {
                 leftPos = buttonRect.left;
             }
-            // If it would overflow right, align to right edge
-            if (leftPos + menuRect.width > viewportWidth - padding) {
-                leftPos = viewportWidth - menuRect.width - padding;
+            // If it would overflow right, align to right edge of viewport
+            if (leftPos + menuWidth > viewportWidth - padding) {
+                leftPos = Math.max(padding, viewportWidth - menuWidth - padding);
             }
         }
         
         // Calculate vertical position
         let topPos = buttonRect.bottom + 4;
         // If menu would overflow bottom, position above button
-        if (topPos + menuRect.height > viewportHeight - padding) {
-            topPos = buttonRect.top - menuRect.height - 4;
+        if (topPos + menuHeight > viewportHeight - padding) {
+            topPos = buttonRect.top - menuHeight - 4;
             // If it would overflow top too, position at bottom of viewport
             if (topPos < padding) {
-                topPos = viewportHeight - menuRect.height - padding;
+                topPos = Math.max(padding, viewportHeight - menuHeight - padding);
             }
         }
         
-        // Apply positions
+        // Ensure minimum padding from edges
+        leftPos = Math.max(padding, Math.min(leftPos, viewportWidth - menuWidth - padding));
+        topPos = Math.max(padding, Math.min(topPos, viewportHeight - menuHeight - padding));
+        
+        // Apply final positions
         menu.style.top = topPos + 'px';
         menu.style.left = leftPos + 'px';
         menu.style.visibility = 'visible';
+        menu.style.zIndex = '10000';
         menu.style.right = 'auto';
         menu.style.bottom = 'auto';
-        menu.style.position = 'fixed';
-        menu.style.zIndex = '9999';
         
         openActionsMenu = menu;
         
+        // Close menu when clicking outside
         currentMenuClickHandler = function(event) {
-            if (!menu.contains(event.target) && !button.contains(event.target)) {
+            if (menu && !menu.contains(event.target) && !button.contains(event.target)) {
                 closeActionsMenu(projectId);
             }
         };
         
+        // Use setTimeout to avoid immediate triggering
         setTimeout(() => {
-            document.addEventListener('click', currentMenuClickHandler);
-        }, 0);
+            document.addEventListener('click', currentMenuClickHandler, true);
+            document.addEventListener('touchstart', currentMenuClickHandler, true);
+        }, 10);
     } else {
         closeActionsMenu(projectId);
     }
 }
 
-function closeActionsMenu(projectId) {
-    const menu = document.getElementById(`actions-menu-${projectId}`);
+function closeActionsMenu(projectId, skipRestore) {
+    const menu = projectId ? document.getElementById(`actions-menu-${projectId}`) : openActionsMenu;
     if (menu) {
         menu.classList.add('hidden');
         
         // Restore menu to its original position
-        if (menuOriginalParent && menuOriginalNextSibling) {
-            if (menuOriginalNextSibling.parentNode === menuOriginalParent) {
-                menuOriginalParent.insertBefore(menu, menuOriginalNextSibling);
-            } else {
-                menuOriginalParent.appendChild(menu);
+        if (!skipRestore && menuOriginalParent) {
+            try {
+                if (menuOriginalNextSibling && menuOriginalNextSibling.parentNode === menuOriginalParent) {
+                    menuOriginalParent.insertBefore(menu, menuOriginalNextSibling);
+                } else if (menuOriginalNextSibling && menuOriginalNextSibling.parentNode) {
+                    menuOriginalNextSibling.parentNode.insertBefore(menu, menuOriginalNextSibling);
+                } else {
+                    menuOriginalParent.appendChild(menu);
+                }
+            } catch (e) {
+                // Fallback: just append to original parent
+                if (menuOriginalParent) {
+                    menuOriginalParent.appendChild(menu);
+                }
             }
-        } else if (menuOriginalParent) {
-            menuOriginalParent.appendChild(menu);
         }
+        
+        // Reset styles
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.visibility = '';
+        menu.style.position = '';
+        menu.style.zIndex = '';
         
         openActionsMenu = null;
         menuOriginalParent = null;
         menuOriginalNextSibling = null;
         
         if (currentMenuClickHandler) {
-            document.removeEventListener('click', currentMenuClickHandler);
+            document.removeEventListener('click', currentMenuClickHandler, true);
+            document.removeEventListener('touchstart', currentMenuClickHandler, true);
             currentMenuClickHandler = null;
         }
     }
