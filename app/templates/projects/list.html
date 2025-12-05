@@ -441,6 +441,8 @@ function updateStatus(projectId, status) {
 let pendingDeleteId = null;
 let openActionsMenu = null;
 let currentMenuClickHandler = null;
+let menuOriginalParent = null;
+let menuOriginalNextSibling = null;
 
 function toggleActionsMenu(projectId, event) {
     event.stopPropagation();
@@ -449,14 +451,31 @@ function toggleActionsMenu(projectId, event) {
     const button = event.target.closest('button');
     
     if (openActionsMenu && openActionsMenu !== menu) {
+        // Restore previous menu to its original position
+        if (menuOriginalParent && menuOriginalNextSibling) {
+            if (menuOriginalNextSibling) {
+                menuOriginalParent.insertBefore(openActionsMenu, menuOriginalNextSibling);
+            } else {
+                menuOriginalParent.appendChild(openActionsMenu);
+            }
+        }
         openActionsMenu.classList.add('hidden');
         if (currentMenuClickHandler) {
             document.removeEventListener('click', currentMenuClickHandler);
             currentMenuClickHandler = null;
         }
+        menuOriginalParent = null;
+        menuOriginalNextSibling = null;
     }
     
     if (menu.classList.contains('hidden')) {
+        // Store original position
+        menuOriginalParent = menu.parentNode;
+        menuOriginalNextSibling = menu.nextSibling;
+        
+        // Move menu to body to escape overflow constraints
+        document.body.appendChild(menu);
+        
         // First, make menu visible temporarily to measure it
         menu.classList.remove('hidden');
         menu.style.visibility = 'hidden';
@@ -511,15 +530,14 @@ function toggleActionsMenu(projectId, event) {
         menu.style.visibility = 'visible';
         menu.style.right = 'auto';
         menu.style.bottom = 'auto';
+        menu.style.position = 'fixed';
+        menu.style.zIndex = '9999';
         
         openActionsMenu = menu;
         
         currentMenuClickHandler = function(event) {
             if (!menu.contains(event.target) && !button.contains(event.target)) {
-                menu.classList.add('hidden');
-                openActionsMenu = null;
-                document.removeEventListener('click', currentMenuClickHandler);
-                currentMenuClickHandler = null;
+                closeActionsMenu(projectId);
             }
         };
         
@@ -527,12 +545,7 @@ function toggleActionsMenu(projectId, event) {
             document.addEventListener('click', currentMenuClickHandler);
         }, 0);
     } else {
-        menu.classList.add('hidden');
-        openActionsMenu = null;
-        if (currentMenuClickHandler) {
-            document.removeEventListener('click', currentMenuClickHandler);
-            currentMenuClickHandler = null;
-        }
+        closeActionsMenu(projectId);
     }
 }
 
@@ -540,7 +553,22 @@ function closeActionsMenu(projectId) {
     const menu = document.getElementById(`actions-menu-${projectId}`);
     if (menu) {
         menu.classList.add('hidden');
+        
+        // Restore menu to its original position
+        if (menuOriginalParent && menuOriginalNextSibling) {
+            if (menuOriginalNextSibling.parentNode === menuOriginalParent) {
+                menuOriginalParent.insertBefore(menu, menuOriginalNextSibling);
+            } else {
+                menuOriginalParent.appendChild(menu);
+            }
+        } else if (menuOriginalParent) {
+            menuOriginalParent.appendChild(menu);
+        }
+        
         openActionsMenu = null;
+        menuOriginalParent = null;
+        menuOriginalNextSibling = null;
+        
         if (currentMenuClickHandler) {
             document.removeEventListener('click', currentMenuClickHandler);
             currentMenuClickHandler = null;
