@@ -19,15 +19,15 @@
         </div>
     </div>
 </div>
-<div class="mb-6 flex items-center justify-between">
-    <h3 class="text-lg font-semibold text-gray-900">All Projects</h3>
+<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+    <h3 class="text-lg sm:text-xl font-semibold text-gray-900">All Projects</h3>
     <button onclick="document.getElementById('new-project-form').classList.toggle('hidden')"
-            class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors">
+            class="px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors whitespace-nowrap">
         Add Project
     </button>
 </div>
 
-<div class="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+<div class="mb-4 sm:mb-6 bg-white rounded-lg border border-gray-200 p-3 sm:p-4">
     <form method="GET" action="{{ url_for('projects.list_projects') }}" class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
             <div class="relative">
@@ -66,14 +66,14 @@
                 <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
             </select>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 sm:gap-3">
             <button type="submit" 
-                    class="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors">
+                    class="flex-1 sm:flex-none px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors">
                 Filter
             </button>
             {% if search_query or client_filter or status_filter %}
             <a href="{{ url_for('projects.list_projects') }}" 
-               class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors">
+               class="flex-1 sm:flex-none px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors text-center">
                 Clear
             </a>
             {% endif %}
@@ -146,7 +146,7 @@
 </div>
 
 <div id="projects-results-container">
-<div class="bg-white rounded-lg border border-gray-200 overflow-hidden overflow-x-auto">
+<div class="bg-white rounded-lg border border-gray-200 overflow-hidden overflow-x-auto table-container">
     <table class="w-full min-w-[800px]">
         <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
