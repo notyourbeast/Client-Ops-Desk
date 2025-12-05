@@ -43,7 +43,7 @@
             <header class="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <button id="menu-toggle" class="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
+                        <button id="menu-toggle" type="button" class="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors" style="z-index: 10000; position: relative;">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
@@ -66,7 +66,7 @@
                             </div>
                         </div>
                         <div class="relative">
-                            <button id="user-menu-button" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors">
+                            <button id="user-menu-button" type="button" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors" style="z-index: 10000; position: relative;">
                                 {% if session.get('user') and session['user'].get('picture') %}
                                 <img src="{{ session['user']['picture'] }}" alt="{{ session['user'].get('name', 'User') }}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
                                 {% else %}
@@ -103,85 +103,101 @@
     </div>
 
     <script>
-        // Initialize all UI interactions
-        window.initUI = function() {
-            // Sidebar toggle
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
+        (function() {
+            let uiInitialized = false;
 
-            function toggleSidebar() {
-                if (!sidebar) return;
-                sidebar.classList.toggle('-translate-x-full');
-                if (overlay) {
-                    overlay.classList.toggle('hidden');
-                }
-            }
+            function initUI() {
+                if (uiInitialized) return;
+                uiInitialized = true;
 
-            if (menuToggle) {
-                menuToggle.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    toggleSidebar();
-                };
-            }
+                // Sidebar toggle
+                const menuToggle = document.getElementById('menu-toggle');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
 
-            if (overlay) {
-                overlay.onclick = toggleSidebar;
-            }
-
-            // User menu toggle
-            const userMenuButton = document.getElementById('user-menu-button');
-            const userMenu = document.getElementById('user-menu');
-
-            if (userMenuButton && userMenu) {
-                userMenuButton.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    userMenu.classList.toggle('hidden');
-                };
-            }
-
-            // Close user menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (userMenu && userMenuButton) {
-                    if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
-                        userMenu.classList.add('hidden');
+                function toggleSidebar() {
+                    if (!sidebar) return;
+                    sidebar.classList.toggle('-translate-x-full');
+                    if (overlay) {
+                        overlay.classList.toggle('hidden');
                     }
                 }
-            });
 
-            // Close sidebar on Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
-                    toggleSidebar();
+                if (menuToggle) {
+                    menuToggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleSidebar();
+                    });
                 }
-            });
 
-            // Close sidebar when resizing to desktop
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 1024 && sidebar && overlay) {
-                    sidebar.classList.remove('-translate-x-full');
-                    overlay.classList.add('hidden');
+                if (overlay) {
+                    overlay.addEventListener('click', toggleSidebar);
                 }
-            });
-        }
 
-        // Run on page load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', window.initUI);
-        } else {
-            window.initUI();
-        }
+                // User menu toggle
+                const userMenuButton = document.getElementById('user-menu-button');
+                const userMenu = document.getElementById('user-menu');
 
-        // Ensure logout form always submits normally (not via AJAX)
-        const logoutForm = document.getElementById('logout-form');
-        if (logoutForm) {
-            logoutForm.addEventListener('submit', function(e) {
-                // Let it submit normally - don't prevent default
-                // This ensures logout always works even with AJAX navigation
-            });
-        }
+                if (userMenuButton && userMenu) {
+                    userMenuButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const isHidden = userMenu.classList.contains('hidden');
+                        if (isHidden) {
+                            userMenu.classList.remove('hidden');
+                        } else {
+                            userMenu.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Close user menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (userMenu && userMenuButton) {
+                        if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+                            userMenu.classList.add('hidden');
+                        }
+                    }
+                });
+
+                // Logout form - ensure it always submits normally
+                const logoutForm = document.getElementById('logout-form');
+                if (logoutForm) {
+                    logoutForm.addEventListener('submit', function(e) {
+                        // Let it submit normally - don't prevent default
+                    });
+                }
+
+                // Close sidebar on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
+                        toggleSidebar();
+                    }
+                });
+
+                // Close sidebar when resizing to desktop
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth >= 1024 && sidebar && overlay) {
+                        sidebar.classList.remove('-translate-x-full');
+                        overlay.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Run on page load
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initUI);
+            } else {
+                initUI();
+            }
+
+            // Make initUI available globally for AJAX re-initialization
+            window.initUI = function() {
+                uiInitialized = false;
+                initUI();
+            };
+        })();
 
         // Navigation link click handler
         function handleNavClick(e) {
