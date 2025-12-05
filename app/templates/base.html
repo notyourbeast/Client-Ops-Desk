@@ -74,7 +74,7 @@
                                 {% endif %}
                             </button>
                             <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
-                                <form method="POST" action="{{ url_for('auth.logout') }}" class="block">
+                                <form method="POST" action="{{ url_for('auth.logout') }}" class="block" id="logout-form">
                                     <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors">
                                         Sign out
                                     </button>
@@ -103,44 +103,31 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
+        // Sidebar toggle functionality - runs immediately since script is at end of body
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
-            console.log('Menu toggle element:', menuToggle);
-            console.log('Sidebar element:', sidebar);
-            console.log('Overlay element:', overlay);
-
-            function toggleSidebar() {
-                if (sidebar) {
-                    const isHidden = sidebar.classList.contains('-translate-x-full');
-                    if (isHidden) {
-                        sidebar.classList.remove('-translate-x-full');
-                    } else {
-                        sidebar.classList.add('-translate-x-full');
-                    }
-                    console.log('Sidebar is now:', isHidden ? 'visible' : 'hidden');
-                }
-                if (overlay) {
-                    overlay.classList.toggle('hidden');
-                }
+        function toggleSidebar() {
+            if (sidebar) {
+                sidebar.classList.toggle('-translate-x-full');
             }
-
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Menu toggle clicked');
-                    toggleSidebar();
-                });
-            } else {
-                console.error('Menu toggle button not found!');
-            }
-
             if (overlay) {
-                overlay.addEventListener('click', toggleSidebar);
+                overlay.classList.toggle('hidden');
             }
-        });
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSidebar();
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
@@ -170,6 +157,15 @@
                 userMenu.classList.add('hidden');
             }
         });
+
+        // Ensure logout form always submits normally (not via AJAX)
+        const logoutForm = document.getElementById('logout-form');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', function(e) {
+                // Let it submit normally - don't prevent default
+                // This ensures logout always works even with AJAX navigation
+            });
+        }
 
         // Navigation link click handler
         function handleNavClick(e) {
