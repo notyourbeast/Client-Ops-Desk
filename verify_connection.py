@@ -13,12 +13,12 @@ load_dotenv()
 
 def verify_connection():
     print("=" * 60)
-    print("🔍 MongoDB Connection Verification")
+    print(" MongoDB Connection Verification")
     print("=" * 60)
     print()
     
     # Step 1: Check environment variables
-    print("📋 Step 1: Checking Environment Variables")
+    print(" Step 1: Checking Environment Variables")
     print("-" * 60)
     mongo_uri = os.getenv('FCH_MONGO_URI', '')
     db_name = os.getenv('FCH_DB_NAME', 'freelance_clienthub')
@@ -27,15 +27,15 @@ def verify_connection():
     print(f"   FCH_DB_NAME: {db_name}")
     
     if not mongo_uri:
-        print("   ❌ MONGO_URI is not set!")
+        print("    MONGO_URI is not set!")
         print("   Please configure MongoDB connection in .env file")
         return False
     
-    print("   ✅ Environment variables configured")
+    print("    Environment variables configured")
     print()
     
     # Step 2: Test MongoDB connection
-    print("🔌 Step 2: Testing MongoDB Connection")
+    print(" Step 2: Testing MongoDB Connection")
     print("-" * 60)
     try:
         # Handle Atlas connections with SSL fix
@@ -50,11 +50,11 @@ def verify_connection():
         else:
             client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
         client.admin.command('ping')
-        print("   MongoDB connection successful!")
-        print(f"  Server: {client.address}")
+        print("    MongoDB connection successful!")
+        print(f"    Server: {client.address}")
     except ConnectionFailure as e:
         error_msg = str(e)
-        print(f"   Connection failed")
+        print(f"    Connection failed")
         if 'authentication failed' in error_msg.lower() or 'bad auth' in error_msg.lower():
             print("     Authentication error - check:")
             print("      • Password is correct")
@@ -66,14 +66,14 @@ def verify_connection():
         return False
     except Exception as e:
         error_msg = str(e)
-        print(f"    Error: {error_msg[:200]}")
+        print(f"   ❌ Error: {error_msg[:200]}")
         if 'authentication' in error_msg.lower() or 'bad auth' in error_msg.lower():
-            print("     Check your password and IP whitelist in Atlas")
+            print("   ⚠️  Check your password and IP whitelist in Atlas")
         return False
     print()
     
     # Step 3: Test database access
-    print(" Step 3: Testing Database Access")
+    print("📊 Step 3: Testing Database Access")
     print("-" * 60)
     try:
         db = client[db_name]
@@ -85,12 +85,12 @@ def verify_connection():
         else:
             print("   ℹ️  No collections yet (will be created automatically)")
     except Exception as e:
-        print(f"    Database access failed: {e}")
+        print(f"   ❌ Database access failed: {e}")
         return False
     print()
     
     # Step 4: Test application database connection
-    print(" Step 4: Testing Application Database Connection")
+    print("🚀 Step 4: Testing Application Database Connection")
     print("-" * 60)
     try:
         from app.repositories.db import get_db
@@ -101,11 +101,11 @@ def verify_connection():
             print(f"    Database name: {app_db.name}")
             print(f"    Database type: MongoDB Database")
         else:
-            print("   ❌ Application database connection failed")
-            print("   ❌ Check your MongoDB connection settings")
+            print("    Application database connection failed")
+            print("    Check your MongoDB connection settings")
             return False
     except Exception as e:
-        print(f"   ❌ Application connection test failed: {e}")
+        print(f"    Application connection test failed: {e}")
         return False
     print()
     
