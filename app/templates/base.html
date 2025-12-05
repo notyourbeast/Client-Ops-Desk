@@ -43,7 +43,7 @@
             <header class="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <button id="menu-toggle" type="button" class="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors" style="z-index: 10000; position: relative;">
+                        <button id="menu-toggle" class="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
@@ -66,15 +66,15 @@
                             </div>
                         </div>
                         <div class="relative">
-                            <button id="user-menu-button" type="button" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors" style="z-index: 10000; position: relative;">
+                            <button id="user-menu-button" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 transition-colors">
                                 {% if session.get('user') and session['user'].get('picture') %}
                                 <img src="{{ session['user']['picture'] }}" alt="{{ session['user'].get('name', 'User') }}" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
                                 {% else %}
                                 <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
                                 {% endif %}
                             </button>
-                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1" style="z-index: 9999;">
-                                <form method="POST" action="{{ url_for('auth.logout') }}" class="block" id="logout-form">
+                            <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                                <form method="POST" action="{{ url_for('auth.logout') }}" class="block">
                                     <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors">
                                         Sign out
                                     </button>
@@ -85,7 +85,7 @@
                 </div>
             </header>
 
-            <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6">
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, message in messages %}
@@ -103,220 +103,38 @@
     </div>
 
     <script>
-        (function() {
-            let uiInitialized = false;
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
-            function initUI() {
-                if (uiInitialized) return;
-                uiInitialized = true;
-
-                // Sidebar toggle
-                const menuToggle = document.getElementById('menu-toggle');
-                const sidebar = document.getElementById('sidebar');
-                const overlay = document.getElementById('sidebar-overlay');
-
-                function toggleSidebar() {
-                    if (!sidebar) return;
-                    sidebar.classList.toggle('-translate-x-full');
-                    if (overlay) {
-                        overlay.classList.toggle('hidden');
-                    }
-                }
-
-                if (menuToggle) {
-                    menuToggle.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleSidebar();
-                    });
-                }
-
-                if (overlay) {
-                    overlay.addEventListener('click', toggleSidebar);
-                }
-
-                // User menu toggle
-                const userMenuButton = document.getElementById('user-menu-button');
-                const userMenu = document.getElementById('user-menu');
-
-                if (userMenuButton && userMenu) {
-                    userMenuButton.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const isHidden = userMenu.classList.contains('hidden');
-                        if (isHidden) {
-                            userMenu.classList.remove('hidden');
-                        } else {
-                            userMenu.classList.add('hidden');
-                        }
-                    });
-                }
-
-                // Close user menu when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (userMenu && userMenuButton) {
-                        if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
-                            userMenu.classList.add('hidden');
-                        }
-                    }
-                });
-
-                // Logout form - ensure it always submits normally
-                const logoutForm = document.getElementById('logout-form');
-                if (logoutForm) {
-                    logoutForm.addEventListener('submit', function(e) {
-                        // Let it submit normally - don't prevent default
-                    });
-                }
-
-                // Close sidebar on Escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
-                        toggleSidebar();
-                    }
-                });
-
-                // Close sidebar when resizing to desktop
-                window.addEventListener('resize', function() {
-                    if (window.innerWidth >= 1024 && sidebar && overlay) {
-                        sidebar.classList.remove('-translate-x-full');
-                        overlay.classList.add('hidden');
-                    }
-                });
-            }
-
-            // Run on page load
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initUI);
-            } else {
-                initUI();
-            }
-
-            // Make initUI available globally for AJAX re-initialization
-            window.initUI = function() {
-                uiInitialized = false;
-                initUI();
-            };
-        })();
-
-        // Navigation link click handler
-        function handleNavClick(e) {
-            const link = e.currentTarget;
-            const href = link.getAttribute('href');
-            console.log('Nav click handler called for:', href);
-            
-            // Only handle internal navigation links
-            if (href && (href.startsWith('/dashboard') || href.startsWith('/clients') || 
-                         href.startsWith('/projects') || href.startsWith('/invoices') || 
-                         href.startsWith('/time'))) {
-                e.preventDefault();
-                console.log('Preventing default navigation');
-                
-                const mainContent = document.getElementById('main-content');
-                if (!mainContent) return;
-                
-                // Show loading state
-                mainContent.innerHTML = '<div class="bg-white rounded-lg border border-gray-200 p-12 text-center"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div><p class="mt-4 text-sm text-gray-500">Loading...</p></div>';
-                
-                // Fetch the page content (full page, not partial)
-                // Don't send X-Requested-With header for navigation to get full page HTML
-                fetch(href)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load page');
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    // Parse the HTML and extract just the main content
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContent = doc.querySelector('#main-content') || doc.querySelector('main') || doc.body;
-                    
-                    if (newContent) {
-                        mainContent.innerHTML = newContent.innerHTML;
-                    }
-                    
-                    // Update page title
-                    const newTitle = doc.querySelector('title');
-                    if (newTitle) {
-                        document.title = newTitle.textContent;
-                    }
-                    
-                    // Update URL without reload
-                    window.history.pushState({}, '', href);
-                    
-                    // Update active navigation link
-                    updateActiveNavLink(href);
-                    
-                    // Re-initialize UI after content loads
-                    if (window.initUI) {
-                        initUI();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading page:', error);
-                    // Fallback to normal navigation
-                    window.location.href = href;
-                });
-        }
-        
-            // Function to update active navigation link styling
-        function updateActiveNavLink(path) {
-            const navLinks = document.querySelectorAll('aside nav a[href^="/"]');
-            navLinks.forEach(link => {
-                const linkHref = link.getAttribute('href');
-                if (path === linkHref || (linkHref !== '/dashboard' && path.startsWith(linkHref))) {
-                    link.classList.add('bg-gray-100', 'text-gray-900');
-                    link.classList.remove('text-gray-700');
-                } else {
-                    link.classList.remove('bg-gray-100', 'text-gray-900');
-                    link.classList.add('text-gray-700');
-                }
-            });
-        }
-        
-        // Handle browser back/forward buttons
-        window.addEventListener('popstate', (e) => {
-            const url = window.location.pathname;
-            const mainContent = document.getElementById('main-content');
-            if (!mainContent) return;
-            
-            // Fetch full page for navigation
-            fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newContent = doc.querySelector('#main-content') || doc.querySelector('main') || doc.body;
-                
-                if (newContent) {
-                    mainContent.innerHTML = newContent.innerHTML;
-                }
-                
-                // Update page title
-                const newTitle = doc.querySelector('title');
-                if (newTitle) {
-                    document.title = newTitle.textContent;
-                }
-                
-                updateActiveNavLink(url);
-            })
-            .catch(() => {
-                window.location.reload();
-            });
-            }
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
         }
 
-        // Attach click handlers to navigation links when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            const navLinks = document.querySelectorAll('aside nav a[href^="/"]');
-            console.log('Found nav links:', navLinks.length);
-            navLinks.forEach(link => {
-                link.addEventListener('click', handleNavClick);
-            });
+        menuToggle?.addEventListener('click', toggleSidebar);
+        overlay?.addEventListener('click', toggleSidebar);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
+                toggleSidebar();
+            }
         });
-        
+
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userMenu = document.getElementById('user-menu');
+
+        userMenuButton?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (userMenu && !userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
         // AJAX Search and Filter Handler
         (function() {
             'use strict';
