@@ -126,3 +126,64 @@ All list views support AJAX-based filtering and searching. Form submissions are 
 ├── verify_connection.py # MongoDB connection verification 
 └── .env # Environment variables (not in repo) 
  
+ Key File Responsibilities 
+
+ **app/__init__.py**: Creates the Flask application instance, registers all blueprints, initializes Google OAuth if configured, sets up ProxyFix middleware for production deployments, and defines the dashboard route with metric calculations. 
+
+ **app/config.py**: Centralizes configuration by loading environment variables into a Config class. Handles MongoDB URI, JWT secrets, Google OAuth credentials, and Flask URL generation settings. 
+ 
+ **app/repositories/db.py**: Manages MongoDB connection lifecycle. Implements singleton pattern for the client connection, handles both local and Atlas connections with appropriate SSL settings, and provides get_db() function for accessing the database instance. 
+ 
+ **app/utils/auth_decorators.py**: Provides the @login_required decorator that validates JWT tokens from cookies, queries the database for user existence, and sets g.current_user for use in route handlers. 
+
+ **app/utils/jwt_utils.py**: Handles JWT token creation with user ID and email payload, token validation and decoding, and error handling for expired or invalid tokens. 
+
+ **run.py**: Entry point that imports the application factory, creates the app instance, and runs it on the configured port. In production, Gunicorn imports this module directly. 
+
+
+ ## Setup Instructions 
+
+ ### Prerequisites 
+ - Python 3.8 or higher 
+ - MongoDB instance (local or MongoDB Atlas) 
+ - Git for version control 
+ - Virtual environment tool (venv or virtualenv) 
+
+ ### Environment Variables 
+
+Create a `.env` file in the project root with the following variables: 
+# Database Configuration 
+FCH_MONGO_URI=mongodb://localhost:27017/ # Local MongoDB 
+# OR for Atlas: 
+# FCH_MONGO_URI=mongodb+srv://notyourbeast:qwerty123@cluster.mongodb.net/ 
+FCH_DB_NAME=freelance_clienthub 
+ 
+# Security Keys (generate strong random strings) 
+FCH_SECRET_KEY:ev-secret-key-change-in-production
+FCH_JWT_SECRET_KEY=dev-jwt-secret-key-change-in-production
+ 
+# Google OAuth (optional, leave empty if not using) 
+FCH_GOOGLE_CLIENT_ID=REDACTED
+FCH_GOOGLE_CLIENT_SECRET=REDACTED
+ 
+# Production Settings (for Render deployment) 
+FCH_SERVER_NAME=[your-app.onrender.com ](https://client-ops-desk.onrender.com)
+FCH_URL_SCHEME=https 
+PORT=10000
+
+
+**FCH_MONGO_URI**: MongoDB connection string. For local development, use `mongodb://localhost:27017/`. For MongoDB Atlas, use the connection string from the Atlas dashboard, which includes authentication credentials. 
+ 
+**FCH_DB_NAME**: Database name within MongoDB. Defaults to `freelance_clienthub` if not specified. 
+ 
+**FCH_SECRET_KEY**: Flask session secret key. Should be a long, random string. Used for signing session cookies. 
+ 
+**FCH_JWT_SECRET_KEY**: Secret key for JWT token signing and verification. Must match between token creation and validation. 
+ 
+**FCH_GOOGLE_CLIENT_ID** and **FCH_GOOGLE_CLIENT_SECRET**: OAuth 2.0 credentials from Google Cloud Console. Required only if using Google login. Leave empty to disable Google OAuth. 
+ 
+**FCH_SERVER_NAME**: Hostname for Flask URL generation. Required for OAuth redirects in production. Should match your deployment domain. 
+ 
+**FCH_URL_SCHEME**: URL scheme (http or https) for Flask URL generation. Use `https` in production. 
+ 
+**PORT**: Port number for the application server. Set by hosting platform in production. 
