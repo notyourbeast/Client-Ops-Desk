@@ -1,4 +1,4 @@
-#Client Hub
+# Client Hub
 
 A full-stack web application designed to help freelancers manage their client relationships, track project progress, log billable hours, and generate invoices. The application provides a centralized dashboard for monitoring business metrics and streamlines the workflow from client onboarding to payment collection. 
 
@@ -125,8 +125,8 @@ All list views support AJAX-based filtering and searching. Form submissions are 
 ├── setup_mongodb.py # Database setup script 
 ├── verify_connection.py # MongoDB connection verification 
 └── .env # Environment variables (not in repo) 
- 
- Key File Responsibilities 
+
+## Key File Responsibilities 
 
  **app/__init__.py**: Creates the Flask application instance, registers all blueprints, initializes Google OAuth if configured, sets up ProxyFix middleware for production deployments, and defines the dashboard route with metric calculations. 
 
