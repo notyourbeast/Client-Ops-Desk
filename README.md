@@ -149,3 +149,49 @@ All list views support AJAX-based filtering and searching. Form submissions are 
  - Git for version control 
  - Virtual environment tool (venv or virtualenv) 
  
+ ### Building and Deployment 
+ 
+The application is configured for deployment on Render (or similar platforms). No build step is required as Python is interpreted. 
+ 
+1. Push code to your Git repository 
+2. Connect repository to Render 
+3. Set environment variables in Render dashboard 
+4. Render will automatically: 
+- Install dependencies from `requirements.txt` 
+- Run the application using the `Procfile` command: `gunicorn run:app` 
+- Listen on the PORT environment variable 
+ 
+The `Procfile` specifies: 
+``` 
+web: gunicorn run:app 
+``` 
+ 
+This tells Render to use Gunicorn as the WSGI server, importing the `app` object from `run.py`. 
+ 
+### Common Errors and Fixes 
+ 
+**MongoDB Connection Error**: Verify `FCH_MONGO_URI` is correct. For Atlas, ensure your IP address is whitelisted in Network Access settings. Check that the database user has appropriate permissions. 
+ 
+**JWT Token Errors**: Ensure `FCH_JWT_SECRET_KEY` is set and consistent. Clear browser cookies if experiencing authentication issues. 
+ 
+**Google OAuth Redirect Mismatch**: Verify `FCH_SERVER_NAME` matches your deployment domain exactly. In Google Cloud Console, ensure redirect URIs include both `http://localhost:5000/auth/google/callback` (development) and your production URL. 
+ 
+**Module Import Errors**: Ensure virtual environment is activated and all dependencies are installed. Check that you're running commands from the project root directory. 
+ 
+**Port Already in Use**: Change the PORT in `.env` or stop the process using the port. On Unix systems, use `lsof -i :5000` to find the process. 
+ 
+## Configuration 
+ 
+### Config Class (app/config.py) 
+ 
+The Config class loads all environment variables at application startup. It uses `python-dotenv` to read from `.env` files, falling back to environment variables if the file doesn't exist. This allows for different configurations between development and production without code changes. 
+ 
+Configuration values are accessed throughout the application via `Config.MONGO_URI`, `Config.SECRET_KEY`, etc. The class provides default values for development but requires proper values in production. 
+ 
+### Procfile 
+ 
+The Procfile specifies how Render should run the application in production. The `web` process type runs Gunicorn, which is a production-grade WSGI server. Gunicorn handles multiple concurrent requests and is more suitable for production than Flask's development server. 
+ 
+### requirements.txt 
+ 
+Lists all Python package dependencies with specific versions. This ensures consistent environments across development and production. When deploying, the hosting platform installs these packages automatically. 
