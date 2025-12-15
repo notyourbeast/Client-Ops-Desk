@@ -1,3 +1,8 @@
+The Updated code Repo : https://github.com/notyourbeast/ClientHub.git  (the code was updated and push directly because all the commits were deleted due to a mistake of git force while fixing branch issues) 
+
+The Render Deployment link : https://client-ops-desk.onrender.com
+
+
 # Client Hub
 
 A full-stack web application designed to help freelancers manage their client relationships, track project progress, log billable hours, and generate invoices. The application provides a centralized dashboard for monitoring business metrics and streamlines the workflow from client onboarding to payment collection. 
